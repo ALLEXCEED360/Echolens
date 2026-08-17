@@ -1,0 +1,80 @@
+# The real stack. Requires Docker Desktop (not yet installed on this machine —
+# see docs/05-environment.md). Phase 1-2 run without this via the SQLite bridge;
+# Phase 3 onward requires it.
+#
+#   docker compose up -d
+#
+# Then set in .env:
+#   ECHOLENS_DATABASE_URL=postgresql+asyncpg://echolens:echolens@localhost:5432/echolens
+#   ECHOLENS_STORAGE_BACKEND=s3
+
+services:
+  postgres:
+    # pgvector ships prebuilt on top of the official Postgres image, which avoids
+    # an MSVC build against a native Postgres install.
+    image: pgvector/pgvector:pg17
+    container_name: echolens-postgres
+    environment:
+      POSTGRES_USER: echolens
+      POSTGRES_PASSWORD: echolens
+      POSTGRES_DB: echolens
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U echolens -d echolens"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: echolens-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: echolens-minio
+    environment:
+      MINIO_ROOT_USER: echolens
+      MINIO_ROOT_PASSWORD: echolens-dev-secret
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # console
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot: creates the bucket, then exits.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 echolens echolens-dev-secret &&
+      mc mb --ignore-existing local/echolens &&
+      echo 'bucket ready'
+      "
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:

@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* Dark-first: this is a video tool and the player is the focus. A light theme
+   would need the whole palette re-derived, so the design commits to one look. */
+@theme {
+  --color-ink-950: #08090c;
+  --color-ink-900: #0d0f14;
+  --color-ink-850: #12151c;
+  --color-ink-800: #171b24;
+  --color-ink-700: #232936;
+  --color-ink-600: #333b4d;
+  --color-ink-400: #6b7689;
+  --color-ink-300: #949eb0;
+  --color-ink-200: #c3cad6;
+  --color-ink-50: #eef1f6;
+
+  --color-accent-400: #4dd4c4;
+  --color-accent-500: #23b8a8;
+  --color-accent-600: #17968a;
+
+  --color-warn-400: #f0b849;
+  --color-danger-400: #f0685f;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-ink-950);
+  color: var(--color-ink-200);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Timestamps and byte counts must not reflow as digits change. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink-900);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-700);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-600);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+}

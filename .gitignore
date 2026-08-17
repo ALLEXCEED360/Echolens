@@ -1,0 +1,46 @@
+# Environment
+.env
+.env.local
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local dev database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Object storage (local backend)
+storage/
+
+# Stray media from pipeline debugging
+*.wav
+*.mp4
+*.mkv
+*.webm
+
+# Model weights / caches
+.cache/
+models/
+
+# Node
+node_modules/
+.next/
+.next-build/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
