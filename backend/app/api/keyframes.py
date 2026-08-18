@@ -6,7 +6,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -33,9 +33,21 @@ async def list_keyframes(
     if await session.get(Video, video_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Video not found")
 
+    # The text filter belongs in SQL, beside LIMIT.
+    #
+    # It used to be applied in Python *after* the query had already been
+    # limited, so `?with_text_only=true&limit=3` fetched the first three frames
+    # by position and then dropped the ones without text — returning one row
+    # for a request that asked for three. The deeper the page, the emptier the
+    # result, and a caller paging through would silently see most of the
+    # corpus vanish.
+    filters = [Keyframe.video_id == video_id]
+    if with_text_only:
+        filters.append(Keyframe.ocr_blocks.any())
+
     stmt = (
         select(Keyframe)
-        .where(Keyframe.video_id == video_id)
+        .where(*filters)
         .options(selectinload(Keyframe.ocr_blocks))
         .order_by(Keyframe.position)
         .limit(limit)
@@ -43,14 +55,19 @@ async def list_keyframes(
     )
     rows = (await session.execute(stmt)).scalars().all()
 
+    # `total` is how many frames match, not how many this page holds. Returning
+    # the page size made it useless for paging: with the default limit it
+    # reported 500 for a video with 1,100 frames.
+    total = (
+        await session.execute(select(func.count()).select_from(Keyframe).where(*filters))
+    ).scalar_one()
+
     items = []
     for row in rows:
         blocks = sorted(
             row.ocr_blocks,
             key=lambda b: ((b.bbox or {}).get("y1", 0), (b.bbox or {}).get("x1", 0)),
         )
-        if with_text_only and not blocks:
-            continue
         items.append(
             KeyframeOut(
                 id=row.id,
@@ -68,7 +85,7 @@ async def list_keyframes(
             )
         )
 
-    return KeyframeList(video_id=video_id, items=items, total=len(items))
+    return KeyframeList(video_id=video_id, items=items, total=total)
 
 
 @router.get("/keyframes/{keyframe_id}/image", summary="Keyframe JPEG")

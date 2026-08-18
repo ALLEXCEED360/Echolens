@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Icon } from "@/components/ui/Icon";
+import { Badge, PanelHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import { formatTimestamp } from "@/lib/format";
 import type { Keyframe } from "@/lib/types";
@@ -17,12 +19,12 @@ interface Props {
   keyframes: Keyframe[];
   currentTime: number;
   onSeek: (seconds: number) => void;
+  framesWithText?: number;
 }
 
-export function KeyframeStrip({ keyframes, currentTime, onSeek }: Props) {
+export function KeyframeStrip({ keyframes, currentTime, onSeek, framesWithText }: Props) {
   const [textOnly, setTextOnly] = useState(false);
   const [hovered, setHovered] = useState<Keyframe | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
   const visible = useMemo(
@@ -57,78 +59,102 @@ export function KeyframeStrip({ keyframes, currentTime, onSeek }: Props) {
 
   if (keyframes.length === 0) return null;
 
-  const withText = keyframes.filter((k) => k.text.trim().length > 0).length;
+  const withText =
+    framesWithText ?? keyframes.filter((k) => k.text.trim().length > 0).length;
 
   return (
-    <div className="shrink-0">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
-          Keyframes
-        </h2>
-        <div className="flex items-center gap-2.5">
-          <span className="tabular text-[10px] text-ink-600">
-            {keyframes.length.toLocaleString()} frames · {withText.toLocaleString()} with text
-          </span>
+    <>
+      <PanelHeader
+        title="Keyframes"
+        icon="image"
+        count={`${keyframes.length.toLocaleString()} frames`}
+      >
+        {withText > 0 ? (
           <button
+            type="button"
+            aria-pressed={textOnly}
             onClick={() => setTextOnly((v) => !v)}
-            disabled={withText === 0}
-            className={`rounded border px-2 py-0.5 text-[10px] transition-colors disabled:opacity-40 ${
+            className={`inline-flex h-7 cursor-pointer items-center gap-1.5 rounded border px-2 text-2xs font-medium transition-colors duration-150 ${
               textOnly
-                ? "border-accent-500/40 text-accent-400"
-                : "border-ink-700 text-ink-400 hover:text-ink-200"
+                ? "border-accent-600/60 bg-accent-950 text-accent-300"
+                : "border-line-strong text-ink-400 hover:text-ink-100"
             }`}
           >
+            <Icon name="type" size={11} strokeWidth={2} />
             With text
+            <span className="tabular opacity-70">{withText.toLocaleString()}</span>
           </button>
+        ) : (
+          // Not a neutral zero: it means OCR has not run against these frames.
+          <Badge tone="warn" icon="alert" title="Run the OCR stage to read on-screen text">
+            no text read
+          </Badge>
+        )}
+      </PanelHeader>
+
+      <div className="px-3 pb-3 pt-2.5">
+        <div
+          className="flex gap-1.5 overflow-x-auto pb-2"
+          onMouseLeave={() => setHovered(null)}
+        >
+          {visible.map((frame, i) => {
+            const active = i === activeIndex;
+            return (
+              <button
+                key={frame.id}
+                ref={active ? activeRef : undefined}
+                onClick={() => onSeek(frame.start_s)}
+                onMouseEnter={() => setHovered(frame)}
+                onFocus={() => setHovered(frame)}
+                aria-label={`Jump to ${formatTimestamp(frame.start_s)}`}
+                className={`group relative shrink-0 cursor-pointer overflow-hidden rounded-md border transition-all duration-150 ${
+                  active
+                    ? "border-accent-400 ring-1 ring-accent-400/40"
+                    : "border-line hover:border-ink-500"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={api.keyframeImageUrl(frame.image_url)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width={128}
+                  height={72}
+                  className={`h-[72px] w-[128px] bg-ink-900 object-cover transition-opacity duration-150 ${
+                    active ? "opacity-100" : "opacity-75 group-hover:opacity-100"
+                  }`}
+                />
+                <span className="tabular absolute bottom-0 left-0 rounded-tr bg-canvas/85 px-1 py-px text-2xs text-ink-100">
+                  {formatTimestamp(frame.start_s)}
+                </span>
+                {frame.text && (
+                  <span
+                    title="On-screen text was read from this frame"
+                    className="absolute right-1 top-1 rounded bg-accent-500 p-0.5 text-ink-950"
+                  >
+                    <Icon name="type" size={9} strokeWidth={2.5} />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Reserve the row whether or not something is hovered, so the panel
+            below does not jump as the pointer crosses the strip. */}
+        <div className="mt-1 h-9 overflow-hidden">
+          {hovered?.text ? (
+            <p className="mono line-clamp-2 rounded border border-line bg-ink-900 px-2.5 py-1.5 text-xs leading-4 text-ink-400">
+              {hovered.text.split("\n").join("  ")}
+            </p>
+          ) : (
+            <p className="px-0.5 py-1.5 text-2xs text-ink-500">
+              Hover a frame to read the text on screen. Click to jump there.
+            </p>
+          )}
         </div>
       </div>
-
-      <div
-        ref={scrollRef}
-        className="flex gap-1.5 overflow-x-auto pb-2"
-        onMouseLeave={() => setHovered(null)}
-      >
-        {visible.map((frame, i) => (
-          <button
-            key={frame.id}
-            ref={i === activeIndex ? activeRef : undefined}
-            onClick={() => onSeek(frame.start_s)}
-            onMouseEnter={() => setHovered(frame)}
-            title={`${formatTimestamp(frame.start_s)}${frame.text ? ` — ${frame.text.slice(0, 120)}` : ""}`}
-            className={`relative shrink-0 overflow-hidden rounded border transition-colors ${
-              i === activeIndex
-                ? "border-accent-500"
-                : "border-ink-800 hover:border-ink-600"
-            }`}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={api.keyframeImageUrl(frame.image_url)}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="h-[72px] w-[128px] bg-ink-900 object-cover"
-            />
-            <span className="tabular absolute bottom-0 left-0 bg-ink-950/80 px-1 text-[9px] text-ink-200">
-              {formatTimestamp(frame.start_s)}
-            </span>
-            {frame.text && (
-              <span
-                title="text detected"
-                className="absolute right-0 top-0 bg-accent-500/80 px-1 text-[9px] text-ink-950"
-              >
-                T
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {hovered?.text && (
-        <p className="mt-1 max-h-16 overflow-y-auto whitespace-pre-line rounded border border-ink-800 bg-ink-900 px-2.5 py-1.5 text-[11px] leading-4 text-ink-400">
-          {hovered.text}
-        </p>
-      )}
-    </div>
+    </>
   );
 }

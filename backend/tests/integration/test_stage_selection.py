@@ -15,8 +15,19 @@ from sqlalchemy import func, select
 
 from app.api.transcripts import _resolve_stages
 from app.db import SessionLocal
-from app.models import StageName, StageStatus, TranscriptSegment
+from app.models import (
+    JobStage,
+    JobStatus,
+    OcrBlock,
+    ProcessingJob,
+    StageName,
+    StageStatus,
+    TranscriptSegment,
+    Video,
+)
+from app.models import Keyframe as Keyframe_
 from app.pipeline import runner
+from app.pipeline.keyframes import Keyframe
 
 
 async def _noop(*_args, **_kwargs):
@@ -27,6 +38,20 @@ async def _noop(*_args, **_kwargs):
 def _no_queue(monkeypatch: pytest.MonkeyPatch) -> None:
     """Jobs are created but never executed unless a test runs them explicitly."""
     monkeypatch.setattr(runner, "enqueue", _noop)
+
+
+async def _seed_job(video_id: uuid.UUID) -> uuid.UUID:
+    """A job row with stage rows, so `_set_stage` has something to update."""
+    async with SessionLocal() as session:
+        job = ProcessingJob(video_id=video_id, status=JobStatus.RUNNING)
+        session.add(job)
+        await session.flush()
+        session.add_all(
+            JobStage(job_id=job.id, name=name, status=StageStatus.WAITING, position=i)
+            for i, name in enumerate(StageName.ORDER)
+        )
+        await session.commit()
+        return job.id
 
 
 async def _upload(client: AsyncClient, data: bytes, filename: str = "lecture.mp4") -> dict:
@@ -245,3 +270,289 @@ class TestExecution:
         await runner.run_job(uuid.UUID(job["id"]))
 
         assert ran == [StageName.EMBED]
+
+
+class TestKeyframeReconciliation:
+    """Re-running the keyframe stage must not destroy OCR.
+
+    The original code deleted every keyframe for the video before inserting
+    fresh ones. OCR blocks hang off keyframe rows, so the delete cascaded and
+    took them with it — and when the *later* OCR stage then failed (a server
+    restart mid-run is enough), the video was left with frames carrying no text
+    at all.
+
+    Nothing surfaced it. The `ocr` chunks live in a different table and kept
+    answering searches, so search looked healthy while `on_screen_text` was
+    None for the entire corpus, silently disabling the frame text badges, the
+    `with_text_only` filter, and the "On screen at this moment" line in every
+    answer prompt.
+    """
+
+    @staticmethod
+    def _patch_scan(monkeypatch: pytest.MonkeyPatch, frames: list[Keyframe]) -> None:
+        async def fake_scan(*_a, **_k):
+            return frames
+
+        async def fake_extract(_source, keyframes, destination, **_k):
+            destination.mkdir(parents=True, exist_ok=True)
+            paths = []
+            for i, _ in enumerate(keyframes):
+                p = destination / f"{i:05d}.jpg"
+                p.write_bytes(b"x")
+                paths.append(p)
+            return paths
+
+        monkeypatch.setattr(runner, "scan_keyframes", fake_scan)
+        monkeypatch.setattr(runner, "extract_keyframes", fake_extract)
+
+    async def _run_keyframe_stage(self, video_id: uuid.UUID, job_id: uuid.UUID) -> list:
+        async with SessionLocal() as session:
+            video = await session.get(Video, video_id)
+            return await runner._stage_keyframes(session, job_id, video)
+
+    async def test_rerun_preserves_ocr_blocks(
+        self, client: AsyncClient, sample_bytes: bytes, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        frames = [
+            Keyframe(start_s=0.0, end_s=5.0, time_s=0.0, phash=0xABCD, change=0),
+            Keyframe(start_s=5.0, end_s=10.0, time_s=5.0, phash=0x1234, change=20),
+        ]
+        self._patch_scan(monkeypatch, frames)
+
+        video = await _upload(client, sample_bytes)
+        video_id = uuid.UUID(video["id"])
+        job_id = await _seed_job(video_id)
+
+        await self._run_keyframe_stage(video_id, job_id)
+
+        # Attach OCR to the first frame, as the ocr stage would.
+        async with SessionLocal() as session:
+            rows = (
+                await session.execute(
+                    select(Keyframe_).where(Keyframe_.video_id == video_id)
+                )
+            ).scalars().all()
+            assert len(rows) == 2
+            session.add(
+                OcrBlock(
+                    keyframe_id=rows[0].id, text="Rigidbody2D", confidence=0.9,
+                    bbox={"x1": 0, "y1": 0, "x2": 10, "y2": 10},
+                )
+            )
+            await session.commit()
+
+        # Re-run with the identical deterministic scan.
+        await self._run_keyframe_stage(video_id, job_id)
+
+        async with SessionLocal() as session:
+            blocks = (
+                await session.execute(select(func.count(OcrBlock.id)))
+            ).scalar()
+            frames_now = (
+                await session.execute(
+                    select(func.count(Keyframe_.id)).where(Keyframe_.video_id == video_id)
+                )
+            ).scalar()
+
+        assert blocks == 1, "re-running the keyframe stage destroyed OCR text"
+        assert frames_now == 2, "re-running duplicated keyframes"
+
+    async def test_changed_frames_are_replaced(
+        self, client: AsyncClient, sample_bytes: bytes, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Reconciliation must still drop frames the video no longer contains."""
+        first = [
+            Keyframe(start_s=0.0, end_s=5.0, time_s=0.0, phash=0xABCD, change=0),
+            Keyframe(start_s=5.0, end_s=10.0, time_s=5.0, phash=0x1234, change=20),
+        ]
+        self._patch_scan(monkeypatch, first)
+
+        video = await _upload(client, sample_bytes)
+        video_id = uuid.UUID(video["id"])
+        job_id = await _seed_job(video_id)
+        await self._run_keyframe_stage(video_id, job_id)
+
+        # A different scan: one frame survives, one is gone, one is new.
+        second = [
+            Keyframe(start_s=0.0, end_s=5.0, time_s=0.0, phash=0xABCD, change=0),
+            Keyframe(start_s=20.0, end_s=25.0, time_s=20.0, phash=0x9999, change=30),
+        ]
+        self._patch_scan(monkeypatch, second)
+        await self._run_keyframe_stage(video_id, job_id)
+
+        async with SessionLocal() as session:
+            rows = (
+                await session.execute(
+                    select(Keyframe_)
+                    .where(Keyframe_.video_id == video_id)
+                    .order_by(Keyframe_.position)
+                )
+            ).scalars().all()
+
+        assert [r.phash for r in rows] == ["000000000000abcd", "0000000000009999"]
+        assert [r.position for r in rows] == [0, 1]
+
+
+class TestOcrRerun:
+    """Re-running OCR must replace text, not accumulate it.
+
+    The stage only ever appended, which was survivable while the keyframes
+    stage deleted every frame first and cascaded the old blocks away. Making
+    keyframes reconcile — necessary, or a failed OCR run destroys existing
+    text — removed that accident and a second pass began duplicating every
+    block, at exactly 2.00x on a re-analysed clip.
+
+    Duplicates are not cosmetic: they are concatenated into `on_screen_text`
+    and into the `kind=ocr` chunks, so each line reached search and the answer
+    prompt twice.
+    """
+
+    async def test_second_pass_replaces_rather_than_appends(
+        self, client: AsyncClient, sample_bytes: bytes, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        video = await _upload(client, sample_bytes)
+        video_id = uuid.UUID(video["id"])
+        job_id = await _seed_job(video_id)
+
+        async with SessionLocal() as session:
+            frame = Keyframe_(
+                video_id=video_id, position=0, start_s=0.0, end_s=5.0, time_s=0.0,
+                storage_key="keyframes/a.jpg", change=0,
+            )
+            session.add(frame)
+            await session.commit()
+            frame_id = frame.id
+
+        class _Block:
+            def __init__(self, text: str) -> None:
+                self.text = text
+                self.confidence = 0.9
+                self.bbox = (0, 0, 10, 10)
+
+        class _Frame:
+            def __init__(self, path) -> None:
+                self.path = path
+                self.blocks = [_Block("Objective Failed")]
+
+        async def fake_read_frames(paths, **_kwargs):
+            return [_Frame(p) for p in paths]
+
+        monkeypatch.setattr(runner, "read_frames", fake_read_frames)
+
+        async def run_ocr() -> None:
+            async with SessionLocal() as session:
+                v = await session.get(Video, video_id)
+                frames = (
+                    await session.execute(
+                        select(Keyframe_).where(Keyframe_.video_id == video_id)
+                    )
+                ).scalars().all()
+                await runner._stage_ocr(session, job_id, v, list(frames))
+
+        await run_ocr()
+        await run_ocr()
+
+        async with SessionLocal() as session:
+            blocks = (
+                await session.execute(
+                    select(func.count(OcrBlock.id)).where(OcrBlock.keyframe_id == frame_id)
+                )
+            ).scalar()
+
+        assert blocks == 1, f"re-running OCR duplicated blocks ({blocks} for one frame)"
+
+
+class TestAudioTypeOption:
+    """The VAD choice belongs to the media, and must survive.
+
+    It began as server configuration only, which made it unusable: changing it
+    meant restarting the API with an environment variable, and the choice
+    vanished the moment the video was re-uploaded — the transcript silently
+    reverted to the thin one. It is now recorded on the job.
+    """
+
+    async def test_noisy_disables_vad_on_the_job(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video = await _upload(client, sample_bytes)
+        response = await client.post(
+            f"/api/videos/{video['id']}/process", params={"audio": "noisy"}
+        )
+        assert response.status_code == 202
+
+        async with SessionLocal() as session:
+            job = (
+                await session.execute(
+                    select(ProcessingJob).where(
+                        ProcessingJob.video_id == uuid.UUID(video["id"])
+                    )
+                )
+            ).scalars().first()
+
+        assert job.options["vad_filter"] is False
+
+    async def test_clear_is_the_default(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video = await _upload(client, sample_bytes)
+        await client.post(f"/api/videos/{video['id']}/process")
+
+        async with SessionLocal() as session:
+            job = (
+                await session.execute(
+                    select(ProcessingJob).where(
+                        ProcessingJob.video_id == uuid.UUID(video["id"])
+                    )
+                )
+            ).scalars().first()
+
+        assert job.options["vad_filter"] is True
+
+    async def test_vocabulary_is_recorded_on_the_job(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video = await _upload(client, sample_bytes)
+        await client.post(
+            f"/api/videos/{video['id']}/process",
+            params={"vocabulary": "  Makarov, Harkov  "},
+        )
+
+        async with SessionLocal() as session:
+            job = (
+                await session.execute(
+                    select(ProcessingJob).where(
+                        ProcessingJob.video_id == uuid.UUID(video["id"])
+                    )
+                )
+            ).scalars().first()
+
+        assert job.options["vocabulary"] == "Makarov, Harkov"
+
+    async def test_blank_vocabulary_is_stored_as_absent(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        """An empty box must not become an empty hotword string."""
+        video = await _upload(client, sample_bytes)
+        await client.post(
+            f"/api/videos/{video['id']}/process", params={"vocabulary": "   "}
+        )
+
+        async with SessionLocal() as session:
+            job = (
+                await session.execute(
+                    select(ProcessingJob).where(
+                        ProcessingJob.video_id == uuid.UUID(video["id"])
+                    )
+                )
+            ).scalars().first()
+
+        assert job.options["vocabulary"] is None
+
+    async def test_rejects_an_unknown_audio_type(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video = await _upload(client, sample_bytes)
+        response = await client.post(
+            f"/api/videos/{video['id']}/process", params={"audio": "underwater"}
+        )
+        assert response.status_code == 422

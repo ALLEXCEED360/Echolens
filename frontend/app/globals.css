@@ -1,25 +1,116 @@
 @import "tailwindcss";
 
-/* Dark-first: this is a video tool and the player is the focus. A light theme
-   would need the whole palette re-derived, so the design commits to one look. */
-@theme {
-  --color-ink-950: #08090c;
-  --color-ink-900: #0d0f14;
-  --color-ink-850: #12151c;
-  --color-ink-800: #171b24;
-  --color-ink-700: #232936;
-  --color-ink-600: #333b4d;
-  --color-ink-400: #6b7689;
-  --color-ink-300: #949eb0;
-  --color-ink-200: #c3cad6;
-  --color-ink-50: #eef1f6;
+/* ─────────────────────────────────────────────────────────────────────────
+   EchoLens design tokens
 
+   Dark-first, and committed to it: this is a video tool, the player is the
+   subject, and every surface exists to sit quietly behind moving footage. A
+   light theme would need the whole palette re-derived for no benefit here.
+
+   The ramp is named by *role*, not by lightness, so a component never has to
+   know which grey is "one step up". Raw `ink-*` values remain for the few
+   places that genuinely need a specific step.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Neutral ramp. Slightly blue rather than pure grey — pure grey next to
+     video looks muddy, a touch of blue reads as deliberate.
+
+     **The upper half is tuned to contrast, not to taste.** Measured against
+     `--color-surface`, the previous values failed outright: ink-600 sat at
+     1.73:1 and ink-500 at 2.55:1, both effectively invisible, while ink-400 —
+     the most-used text colour in the entire app — managed 4.24:1 and was
+     routinely set at 12px, where 4.5:1 is the floor. A UI can be dark without
+     being unreadable; these values pass.
+
+       ink-400  7.12:1     ink-300  9.01:1     ink-200 12.06:1
+       ink-500  5.42:1     ink-600  3.70:1  (decorative only — rules,
+                                             disabled glyphs, never prose) */
+  --color-ink-950: #07080b;
+  --color-ink-900: #0b0d12;
+  --color-ink-850: #12151d;
+  --color-ink-800: #191e28;
+  --color-ink-750: #212734;
+  --color-ink-700: #2b3243;
+  --color-ink-600: #626c85;
+  --color-ink-500: #7d8899;
+  --color-ink-400: #939db0;
+  --color-ink-300: #a8b1c2;
+  --color-ink-200: #ccd2dd;
+  --color-ink-100: #e2e7ee;
+  --color-ink-50: #f2f5f9;
+
+  /* Semantic surfaces, in stacking order. */
+  --color-canvas: #07080b;
+  --color-surface: #0b0d12;
+  --color-raised: #11141b;
+  --color-overlay: #161a23;
+
+  /* Borders are lifted too — a hairline at 1.3:1 does not separate anything. */
+  --color-line: #242a36;
+  --color-line-strong: #343c4d;
+
+  /* Text roles. Both clear 4.5:1 on `surface`; `faint` is dimmer but still
+     legible, because "decorative" text is read anyway. */
+  --color-text: #f2f5f9;
+  --color-text-muted: #a8b1c2;
+  --color-text-faint: #939db0;
+
+  /* Teal reads as instrumentation rather than branding, and stays distinct
+     from the warn/danger hues at a glance. */
+  --color-accent-300: #7ce3d6;
   --color-accent-400: #4dd4c4;
   --color-accent-500: #23b8a8;
   --color-accent-600: #17968a;
+  --color-accent-700: #0f6d64;
+  --color-accent-950: #06231f;
 
+  --color-warn-300: #f5cd7a;
   --color-warn-400: #f0b849;
+  --color-warn-950: #2a1f07;
+
+  --color-danger-300: #f59189;
   --color-danger-400: #f0685f;
+  --color-danger-500: #db4b41;
+  --color-danger-950: #2c100d;
+
+  --color-info-400: #6aa8f0;
+
+  /* Modular type scale, shifted up a step.
+     
+     A survey of the running app found 12px to be the *most common* size in the
+     interface, with 10px still in use. That is spreadsheet-dense for something
+     you read for minutes at a time, and it compounded the contrast problem —
+     small text needs more contrast, not less. Nothing here is below 12px now,
+     and body copy is 15px. */
+  --text-2xs: 0.75rem;     /* 12px — timestamps, tags */
+  --text-2xs--line-height: 1.125rem;
+  --text-xs: 0.8125rem;    /* 13px — metadata */
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.875rem;     /* 14px — dense body */
+  --text-sm--line-height: 1.375rem;
+  --text-base: 0.9375rem;  /* 15px — body */
+  --text-base--line-height: 1.5rem;
+  --text-md: 1.0625rem;    /* 17px — lead */
+  --text-md--line-height: 1.5rem;
+  --text-lg: 1.1875rem;    /* 19px — panel titles */
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.5rem;       /* 24px — page titles */
+  --text-xl--line-height: 1.875rem;
+  --text-2xl: 1.875rem;    /* 30px — hero */
+  --text-2xl--line-height: 2.25rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+
+  /* Elevation is mostly a lighter surface plus a hairline; shadows on near
+     black do very little, so they stay subtle and are used for genuine
+     overlays only. */
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-pop: 0 8px 24px -6px rgb(0 0 0 / 0.7), 0 2px 6px rgb(0 0 0 / 0.4);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html,
@@ -28,35 +119,89 @@ body {
 }
 
 body {
-  background-color: var(--color-ink-950);
+  background-color: var(--color-canvas);
   color: var(--color-ink-200);
-  font-family:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-base);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Timestamps and byte counts must not reflow as digits change. */
+/* Timestamps, counts and durations must not reflow as digits change. */
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
+/* Monospace for machine-read text: OCR of a code editor, chunk ids, raw
+   scores. Setting these in the body face implies a human wrote them. */
+.mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-ligatures: none;
+}
 
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-ink-900);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-ink-700);
-  border-radius: 5px;
+  border-radius: 999px;
+  border: 2px solid var(--color-canvas);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-ink-600);
 }
 
+/* Keyboard focus must always be visible. Never remove this without an
+   equally visible replacement. */
 :focus-visible {
-  outline: 2px solid var(--color-accent-500);
+  outline: 2px solid var(--color-accent-400);
   outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Motion is used to explain change — a panel opening, a row promoting. None
+   of it carries information on its own, so removing it costs nothing. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes echo-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-up {
+  animation: echo-fade-up 220ms var(--ease-out-soft) both;
+}
+
+@keyframes echo-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.animate-pulse-soft {
+  animation: echo-pulse 1.6s ease-in-out infinite;
 }

@@ -2,6 +2,17 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Icon } from "@/components/ui/Icon";
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  Dot,
+  EmptyState,
+  ErrorNote,
+  Input,
+  PageHeader,
+} from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { formatTimestamp } from "@/lib/format";
 import type { CollectionDetail, CollectionSummary, VideoSummary } from "@/lib/types";
@@ -22,6 +33,7 @@ export default function CollectionsPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -83,9 +95,7 @@ export default function CollectionsPage() {
 
   const remove = useCallback(async () => {
     if (!selected) return;
-    if (!confirm(`Delete "${selected.name}"? Its ${selected.video_count} video(s) stay in your library.`)) {
-      return;
-    }
+    setConfirmDelete(false);
     try {
       await api.deleteCollection(selected.id);
       setSelected(null);
@@ -98,19 +108,16 @@ export default function CollectionsPage() {
   const memberIds = new Set(selected?.videos.map((v) => v.id) ?? []);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-ink-50">Collections</h1>
-        <p className="mt-1 text-sm text-ink-400">
-          Group videos into a course or project, then search and ask questions scoped to just
-          that group.
-        </p>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+      <PageHeader
+        title="Collections"
+        subtitle="Group videos into a course or project, then scope search and questions to just that group."
+      />
 
       {error && (
-        <p className="mb-4 rounded border border-danger-400/30 bg-danger-400/10 px-3 py-2 text-xs text-danger-400">
-          {error}
-        </p>
+        <div className="mb-4">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
       )}
 
       <div className="grid gap-6 md:grid-cols-[280px_1fr]">
@@ -122,22 +129,25 @@ export default function CollectionsPage() {
             }}
             className="flex gap-2"
           >
-            <input
+            <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
+              aria-label="New collection name"
               placeholder="New collection"
-              className="min-w-0 flex-1 rounded border border-ink-700 bg-ink-900 px-2.5 py-1.5 text-xs text-ink-200 placeholder:text-ink-600"
+              className="min-w-0 flex-1"
             />
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              icon="plus"
               disabled={!name.trim()}
-              className="shrink-0 rounded border border-accent-500/40 px-2.5 py-1.5 text-xs text-accent-400 disabled:opacity-40"
+              className="shrink-0"
             >
               Add
-            </button>
+            </Button>
           </form>
 
-          {loading && <p className="mt-4 text-xs text-ink-400">Loading…</p>}
+          {loading && <p className="mt-4 text-xs text-ink-500">Loading…</p>}
 
           <ul className="mt-3 space-y-1">
             {collections.map((c) => (
@@ -147,11 +157,11 @@ export default function CollectionsPage() {
                   className={`w-full rounded border px-2.5 py-2 text-left transition-colors ${
                     selected?.id === c.id
                       ? "border-accent-500/40 bg-accent-500/5"
-                      : "border-ink-800 bg-ink-900 hover:border-ink-600"
+                      : "border-line bg-surface hover:border-ink-600 hover:bg-raised"
                   }`}
                 >
                   <p className="truncate text-xs text-ink-100">{c.name}</p>
-                  <p className="tabular mt-0.5 text-[10px] text-ink-500">
+                  <p className="tabular mt-0.5 text-2xs text-ink-500">
                     {c.video_count} video{c.video_count === 1 ? "" : "s"}
                     {c.indexed_count < c.video_count && (
                       <span className="text-warn-400"> · {c.indexed_count} indexed</span>
@@ -166,10 +176,10 @@ export default function CollectionsPage() {
           </ul>
 
           {!loading && collections.length === 0 && (
-            <p className="mt-4 text-xs text-ink-600">No collections yet.</p>
+            <p className="mt-4 text-xs text-ink-500">No collections yet.</p>
           )}
           {unfiled > 0 && (
-            <p className="mt-3 text-[10px] text-ink-600">
+            <p className="mt-3 text-2xs text-ink-500">
               {unfiled} video{unfiled === 1 ? "" : "s"} not in any collection
             </p>
           )}
@@ -181,7 +191,7 @@ export default function CollectionsPage() {
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="truncate text-sm font-medium text-ink-50">{selected.name}</h2>
-                  <p className="tabular mt-0.5 text-[11px] text-ink-500">
+                  <p className="tabular mt-0.5 text-2xs text-ink-500">
                     {selected.video_count} video{selected.video_count === 1 ? "" : "s"} ·{" "}
                     {formatTimestamp(selected.total_duration_s)} total
                   </p>
@@ -191,28 +201,33 @@ export default function CollectionsPage() {
                     <>
                       <Link
                         href={`/ask?collection=${selected.id}`}
-                        className="rounded border border-accent-500/40 px-2.5 py-1 text-xs text-accent-400 hover:bg-accent-500/10"
+                        className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md bg-accent-500 px-2.5 text-xs font-semibold text-ink-950 transition-colors duration-150 hover:bg-accent-400"
                       >
+                        <Icon name="sparkles" size={13} />
                         Ask
                       </Link>
                       <Link
                         href={`/search?collection=${selected.id}`}
-                        className="rounded border border-ink-700 px-2.5 py-1 text-xs text-ink-300 hover:border-ink-600"
+                        className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-ink-750 px-2.5 text-xs font-medium text-ink-100 transition-colors duration-150 hover:bg-ink-700"
                       >
+                        <Icon name="search" size={13} />
                         Search
                       </Link>
                     </>
                   )}
-                  <button
-                    onClick={() => void remove()}
-                    className="rounded border border-ink-700 px-2.5 py-1 text-xs text-ink-400 hover:border-danger-400/50 hover:text-danger-400"
+                  <span className="h-5 w-px bg-line-strong" aria-hidden />
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    icon="trash"
+                    onClick={() => setConfirmDelete(true)}
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
 
-              <p className="mb-2 text-[10px] uppercase tracking-wider text-ink-600">
+              <p className="mb-2 text-2xs uppercase tracking-wider text-ink-500">
                 Videos — click to add or remove
               </p>
               <ul className="space-y-1">
@@ -225,7 +240,7 @@ export default function CollectionsPage() {
                         className={`flex w-full items-center gap-3 rounded border px-3 py-2 text-left transition-colors ${
                           isMember
                             ? "border-accent-500/40 bg-accent-500/5"
-                            : "border-ink-800 bg-ink-900 hover:border-ink-600"
+                            : "border-line bg-surface hover:border-ink-600 hover:bg-raised"
                         }`}
                       >
                         <span
@@ -238,7 +253,7 @@ export default function CollectionsPage() {
                         <span className="min-w-0 flex-1 truncate text-xs text-ink-200">
                           {v.title}
                         </span>
-                        <span className="tabular shrink-0 text-[10px] text-ink-600">
+                        <span className="tabular shrink-0 text-2xs text-ink-500">
                           {formatTimestamp(v.duration_s)}
                         </span>
                       </button>
@@ -247,7 +262,7 @@ export default function CollectionsPage() {
                 })}
               </ul>
               {videos.length === 0 && (
-                <p className="text-xs text-ink-600">
+                <p className="text-xs text-ink-500">
                   No videos yet.{" "}
                   <Link href="/" className="text-accent-400">
                     Upload one
@@ -257,12 +272,29 @@ export default function CollectionsPage() {
               )}
             </>
           ) : (
-            <p className="text-xs text-ink-600">
+            <p className="text-xs text-ink-500">
               Select a collection to manage its videos.
             </p>
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={selected ? `Delete “${selected.name}”?` : "Delete collection?"}
+        body={
+          selected ? (
+            <>
+              The collection is removed, but its {selected.video_count} video
+              {selected.video_count === 1 ? "" : "s"} stay in your library —
+              they simply become unfiled.
+            </>
+          ) : undefined
+        }
+        confirmLabel="Delete collection"
+        onConfirm={() => void remove()}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

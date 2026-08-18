@@ -78,9 +78,20 @@ export const api = {
    * a comma-separated list; unselected stages read their inputs from what is
    * already stored, so "visual" adds keyframes and OCR without re-transcribing.
    */
-  startProcessing: (id: string, stages?: string) => {
-    const query = stages ? `?stages=${encodeURIComponent(stages)}` : "";
-    return request<Job>(`/api/videos/${id}/process${query}`, { method: "POST" });
+  startProcessing: (
+    id: string,
+    stages?: string,
+    opts: { audio?: "clear" | "noisy"; vocabulary?: string } = {},
+  ) => {
+    const query = new URLSearchParams();
+    if (stages) query.set("stages", stages);
+    // Decide whether voice-activity detection runs, and bias the decoder toward
+    // names it would otherwise guess at. Sent per request rather than read from
+    // server config, so both belong to the video.
+    if (opts.audio) query.set("audio", opts.audio);
+    if (opts.vocabulary?.trim()) query.set("vocabulary", opts.vocabulary.trim());
+    const qs = query.toString();
+    return request<Job>(`/api/videos/${id}/process${qs ? `?${qs}` : ""}`, { method: "POST" });
   },
 
   getTranscript: (id: string) => request<Transcript>(`/api/videos/${id}/transcript`),
@@ -136,9 +147,15 @@ export const api = {
     }),
 
   /** Where a concept appears across the corpus, grouped by video and ordered by time. */
-  conceptTimeline: (q: string, opts: { collectionId?: string; minRelevance?: number } = {}) => {
+  conceptTimeline: (
+    q: string,
+    opts: { collectionId?: string; videoId?: string; minRelevance?: number } = {},
+  ) => {
     const query = new URLSearchParams({ q });
     if (opts.collectionId) query.set("collection_id", opts.collectionId);
+    // The endpoint has always accepted this; the client simply never sent it,
+    // so scoping a trace to one video was unreachable from the UI.
+    if (opts.videoId) query.set("video_id", opts.videoId);
     if (opts.minRelevance != null) query.set("min_relevance", String(opts.minRelevance));
     return request<ConceptTimeline>(`/api/search/timeline?${query}`);
   },

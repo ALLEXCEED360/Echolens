@@ -1,6 +1,8 @@
 "use client";
 
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { Button, Input } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { api } from "@/lib/api";
 import { formatTimestamp, parseTimestamp } from "@/lib/format";
 
@@ -51,10 +53,11 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, Props>(function VideoPl
 
   if (!playable) {
     return (
-      <div className="flex aspect-video items-center justify-center rounded-lg border border-ink-700 bg-ink-900 p-8 text-center">
-        <div>
-          <p className="text-sm text-ink-200">This container needs transcoding to play here.</p>
-          <p className="mt-1.5 text-xs text-ink-400">
+      <div className="flex aspect-video items-center justify-center rounded-lg border border-line bg-surface p-8 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <Icon name="alert" size={20} className="text-warn-400" />
+          <p className="text-sm text-ink-100">This container needs transcoding to play here.</p>
+          <p className="max-w-sm text-xs leading-5 text-ink-500">
             It is stored and will be indexed normally — only in-browser playback is affected.
           </p>
         </div>
@@ -63,7 +66,7 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, Props>(function VideoPl
   }
 
   return (
-    <div className="shrink-0 overflow-hidden rounded-lg border border-ink-800 bg-black">
+    <div className="shrink-0 overflow-hidden rounded-lg border border-line bg-black shadow-panel">
       <video
         ref={videoRef}
         src={api.streamUrl(videoId)}
@@ -78,7 +81,8 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, Props>(function VideoPl
         }
       />
       {error && (
-        <p className="border-t border-ink-800 bg-ink-900 px-3 py-2 text-xs text-danger-400">
+        <p className="flex items-center gap-2 border-t border-line bg-danger-950 px-3 py-2 text-xs text-danger-300">
+          <Icon name="alert" size={13} />
           {error}
         </p>
       )}
@@ -109,24 +113,37 @@ export function SeekBar({
     if (seconds !== null) onSeek(seconds);
   };
 
+  const progress = duration ? Math.min((currentTime / duration) * 100, 100) : 0;
+
   return (
-    <form onSubmit={submit} className="flex items-center gap-2.5">
-      <span className="tabular shrink-0 text-xs text-ink-400">
-        {formatTimestamp(currentTime)} / {formatTimestamp(duration)}
+    <div className="flex flex-wrap items-center gap-3">
+      {/* Elapsed position, given weight so it reads as the primary readout
+          rather than another piece of grey chrome. */}
+      <span className="tabular shrink-0 text-sm text-ink-100">
+        {formatTimestamp(currentTime)}
+        <span className="text-ink-500"> / {formatTimestamp(duration)}</span>
       </span>
-      <input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="Jump to 12:30"
-        aria-label="Jump to timestamp"
-        className="w-32 rounded border border-ink-700 bg-ink-900 px-2 py-1 text-xs text-ink-200 placeholder:text-ink-600"
-      />
-      <button
-        type="submit"
-        className="rounded border border-ink-700 px-2.5 py-1 text-xs text-ink-300 transition-colors hover:border-accent-500 hover:text-accent-400"
-      >
-        Go
-      </button>
-    </form>
+
+      <div className="h-1 min-w-24 flex-1 overflow-hidden rounded-full bg-ink-800" aria-hidden>
+        <div
+          className="h-full rounded-full bg-accent-500/70"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <form onSubmit={submit} className="flex shrink-0 items-center gap-2">
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="1:12:30"
+          aria-label="Jump to timestamp"
+          icon="clock"
+          className="w-36"
+        />
+        <Button type="submit" size="md" variant="secondary">
+          Jump
+        </Button>
+      </form>
+    </div>
   );
 }

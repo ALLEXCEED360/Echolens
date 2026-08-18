@@ -220,6 +220,17 @@ class ProcessingJob(Base):
     )
     error: Mapped[str | None] = mapped_column(Text)
 
+    # Per-run choices that are not derivable from the stage plan.
+    #
+    # Some settings are properties of *this media*, not of the installation:
+    # whether voice-activity detection should run depends on whether the audio
+    # is a lecture or a firefight. Holding that only in server configuration
+    # made it unusable — changing it meant restarting the API with an
+    # environment variable, and the choice was lost the moment the video was
+    # re-uploaded. Recorded on the job so it survives, is visible afterwards,
+    # and can be set per request.
+    options: Mapped[dict] = mapped_column(SAJson, nullable=False, default=dict)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

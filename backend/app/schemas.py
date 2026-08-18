@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ORMModel(BaseModel):
@@ -27,6 +27,9 @@ class VideoSummary(ORMModel):
     size_bytes: int
     has_audio: bool
     created_at: datetime
+    # First extracted keyframe, when the visual stage has run. `None` simply
+    # means there is no frame to show yet, not an error.
+    poster_url: str | None = None
 
 
 class VideoDetail(VideoSummary):
@@ -46,6 +49,21 @@ class VideoDetail(VideoSummary):
 class VideoUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=512)
     description: str | None = Field(default=None, max_length=10_000)
+
+    @field_validator("title")
+    @classmethod
+    def _title_is_not_blank(cls, value: str | None) -> str | None:
+        """Reject a title made only of whitespace.
+
+        `min_length=1` is satisfied by a single space, which would leave the
+        library showing a row with no name and no obvious way to fix it.
+        """
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Title cannot be blank")
+        return cleaned
 
 
 class VideoList(BaseModel):
@@ -282,6 +300,11 @@ class SearchHit(BaseModel):
     end_s: float
     # The child chunk: what actually matched, ~18s, precise about *when*.
     text: str
+    # "transcript" (spoken) or "ocr" (read off the screen). Clients must be able
+    # to tell these apart: OCR of a 360p code editor is a genuinely useful
+    # *locator* but poor reading material, and presented unlabelled it looks
+    # like the search returned nonsense.
+    kind: str
     score: float
     # Which retrievers found it — "semantic", "lexical", or both.
     matched_by: list[str]

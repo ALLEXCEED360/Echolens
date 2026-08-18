@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import uuid
 
 import pytest
 from httpx import AsyncClient
@@ -232,3 +233,74 @@ class TestHealth:
         # Postgres + pgvector since Phase 3; the SQLite bridge is retired.
         assert body["vector_search"] is True
         assert body["phase"] >= 3
+
+
+class TestRename:
+    """Renaming an uploaded video.
+
+    Uploaded filenames are rarely what you want to read later — a six-hour
+    course arriving as "videoplayback" is the normal case. The endpoint has
+    existed since Phase 1; nothing called it until the UI gained an editable
+    title.
+    """
+
+    async def test_renames(self, client: AsyncClient, sample_bytes: bytes) -> None:
+        video = (
+            await client.post("/api/videos", params={"filename": "videoplayback.mp4"},
+                              content=sample_bytes)
+        ).json()
+
+        response = await client.patch(
+            f"/api/videos/{video['id']}", json={"title": "Unity Crash Course"}
+        )
+
+        assert response.status_code == 200
+        assert response.json()["title"] == "Unity Crash Course"
+        # And it survives a re-read, rather than only echoing back.
+        again = await client.get(f"/api/videos/{video['id']}")
+        assert again.json()["title"] == "Unity Crash Course"
+
+    async def test_trims_surrounding_whitespace(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video = (
+            await client.post("/api/videos", params={"filename": "a.mp4"}, content=sample_bytes)
+        ).json()
+
+        response = await client.patch(
+            f"/api/videos/{video['id']}", json={"title": "  Lecture 05  "}
+        )
+        assert response.json()["title"] == "Lecture 05"
+
+    @pytest.mark.parametrize("title", ["", "   ", "\t\n"])
+    async def test_rejects_a_blank_title(
+        self, client: AsyncClient, sample_bytes: bytes, title: str
+    ) -> None:
+        """`min_length=1` alone is satisfied by a single space, which would
+        leave a library row with no name and no obvious way to fix it."""
+        video = (
+            await client.post("/api/videos", params={"filename": "a.mp4"}, content=sample_bytes)
+        ).json()
+
+        response = await client.patch(f"/api/videos/{video['id']}", json={"title": title})
+        assert response.status_code == 422
+
+    async def test_leaves_other_fields_alone(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        """A rename must not clear the description or touch the source file."""
+        video = (
+            await client.post("/api/videos", params={"filename": "a.mp4"}, content=sample_bytes)
+        ).json()
+        await client.patch(f"/api/videos/{video['id']}", json={"description": "notes"})
+
+        await client.patch(f"/api/videos/{video['id']}", json={"title": "Renamed"})
+
+        body = (await client.get(f"/api/videos/{video['id']}")).json()
+        assert body["title"] == "Renamed"
+        assert body["description"] == "notes"
+        assert body["original_filename"] == "a.mp4"
+
+    async def test_missing_video_is_404(self, client: AsyncClient) -> None:
+        response = await client.patch(f"/api/videos/{uuid.uuid4()}", json={"title": "x"})
+        assert response.status_code == 404

@@ -135,6 +135,7 @@ async def search(
                 start_s=h.start_s,
                 end_s=h.end_s,
                 text=h.text,
+                kind=h.kind,
                 score=round(h.score, 6),
                 matched_by=h.matched_by,
                 semantic_rank=h.semantic_rank,

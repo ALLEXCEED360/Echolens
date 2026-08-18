@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { PanelHeader } from "@/components/ui";
 import { formatTimestamp } from "@/lib/format";
 import { EVENT_STYLES, type TimelineEvent } from "@/lib/types";
 
@@ -27,12 +28,10 @@ const BUCKETS = 240;
 
 export function Timeline({ events, duration, currentTime, onSeek }: Props) {
   const [hidden, setHidden] = useState<Set<string>>(new Set());
-  const [hovered, setHovered] = useState<TimelineEvent | null>(null);
+  const [hovered, setHovered] = useState<{ event: TimelineEvent; pct: number } | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  const visible = useMemo(
-    () => events.filter((e) => !hidden.has(e.type)),
-    [events, hidden],
-  );
+  const visible = useMemo(() => events.filter((e) => !hidden.has(e.type)), [events, hidden]);
 
   const buckets = useMemo(() => {
     if (!duration) return [];
@@ -67,84 +66,144 @@ export function Timeline({ events, duration, currentTime, onSeek }: Props) {
 
   const playheadPct = Math.min((currentTime / duration) * 100, 100);
 
+  const seekFromPointer = (clientX: number) => {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    onSeek(((clientX - rect.left) / rect.width) * duration);
+  };
+
   return (
-    <div className="shrink-0">
-      <div className="mb-1.5 flex items-center justify-between gap-3">
-        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-ink-400">
-          Timeline
-        </h2>
-        <div className="flex flex-wrap items-center gap-1.5">
+    <>
+      <PanelHeader title="Timeline" icon="timeline" count={`${events.length} events`}>
+        {/* Legend doubles as a filter. Each entry states what it is, how many
+            there are, and whether it is currently shown. */}
+        <div className="flex flex-wrap items-center justify-end gap-1">
           {Object.entries(counts)
             .sort((a, b) => b[1] - a[1])
             .map(([type, count]) => {
-              const style = EVENT_STYLES[type] ?? {
-                label: type,
-                className: "bg-ink-400",
-              };
+              const style = EVENT_STYLES[type] ?? { label: type, className: "bg-ink-400" };
               const off = hidden.has(type);
               return (
                 <button
                   key={type}
+                  type="button"
+                  aria-pressed={!off}
                   onClick={() =>
                     setHidden((prev) => {
                       const next = new Set(prev);
-                      next.has(type) ? next.delete(type) : next.add(type);
+                      if (next.has(type)) next.delete(type);
+                      else next.add(type);
                       return next;
                     })
                   }
-                  title={`${count} ${style.label.toLowerCase()} events`}
-                  className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] transition-opacity ${
-                    off ? "border-ink-800 opacity-40" : "border-ink-700"
+                  title={`${count} ${style.label.toLowerCase()} events — click to ${
+                    off ? "show" : "hide"
+                  }`}
+                  className={`inline-flex h-7 cursor-pointer items-center gap-1.5 rounded border px-1.5 text-2xs transition-colors duration-150 ${
+                    off
+                      ? "border-line text-ink-500"
+                      : "border-line-strong text-ink-300 hover:text-ink-50"
                   }`}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${style.className}`} />
-                  <span className="text-ink-400">{style.label}</span>
-                  <span className="tabular text-ink-600">{count}</span>
+                  <span
+                    className={`h-2 w-2 rounded-full ${style.className} ${off ? "opacity-25" : ""}`}
+                  />
+                  {style.label}
+                  <span className="tabular text-ink-500">{count}</span>
                 </button>
               );
             })}
         </div>
-      </div>
+      </PanelHeader>
 
-      <div
-        className="relative h-9 cursor-pointer overflow-hidden rounded border border-ink-800 bg-ink-900"
-        onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          onSeek(((e.clientX - rect.left) / rect.width) * duration);
-        }}
-        onMouseLeave={() => setHovered(null)}
-      >
-        {buckets.map((event, i) =>
-          event ? (
+      <div className="px-4 pb-3.5 pt-3">
+        <div
+          ref={trackRef}
+          role="slider"
+          tabIndex={0}
+          aria-label="Video timeline"
+          aria-valuemin={0}
+          aria-valuemax={Math.round(duration)}
+          aria-valuenow={Math.round(currentTime)}
+          aria-valuetext={formatTimestamp(currentTime)}
+          className="relative h-12 cursor-pointer overflow-hidden rounded-md border border-line bg-ink-950"
+          onClick={(e) => seekFromPointer(e.clientX)}
+          onKeyDown={(e) => {
+            const step = e.shiftKey ? 60 : 10;
+            if (e.key === "ArrowRight") {
+              e.preventDefault();
+              onSeek(Math.min(currentTime + step, duration));
+            } else if (e.key === "ArrowLeft") {
+              e.preventDefault();
+              onSeek(Math.max(currentTime - step, 0));
+            }
+          }}
+          onMouseLeave={() => setHovered(null)}
+        >
+          {/* Minute/hour gridlines give the bar a sense of scale — without them
+              a position reads as "somewhere in the middle" and nothing more. */}
+          {Array.from({ length: 11 }, (_, i) => (
             <span
               key={i}
-              onMouseEnter={() => setHovered(event)}
-              style={{ left: `${(i / BUCKETS) * 100}%`, width: `${100 / BUCKETS}%` }}
-              className={`absolute bottom-0 top-0 ${
-                (EVENT_STYLES[event.type] ?? { className: "bg-ink-400" }).className
-              } ${event.type === "topic_change" ? "opacity-100" : "opacity-50"}`}
+              style={{ left: `${(i + 1) * (100 / 12)}%` }}
+              className="absolute inset-y-0 w-px bg-line/70"
+              aria-hidden
             />
-          ) : null,
-        )}
+          ))}
 
-        {/* Playhead */}
-        <span
-          style={{ left: `${playheadPct}%` }}
-          className="pointer-events-none absolute bottom-0 top-0 w-px bg-ink-50"
-        />
-      </div>
+          {buckets.map((event, i) =>
+            event ? (
+              <span
+                key={i}
+                onMouseEnter={() => setHovered({ event, pct: (i / BUCKETS) * 100 })}
+                style={{ left: `${(i / BUCKETS) * 100}%`, width: `${100 / BUCKETS}%` }}
+                className={`absolute ${
+                  event.type === "topic_change"
+                    ? "inset-y-0 opacity-100"
+                    : "bottom-0 top-1/3 opacity-60"
+                } ${(EVENT_STYLES[event.type] ?? { className: "bg-ink-400" }).className}`}
+              />
+            ) : null,
+          )}
 
-      <div className="mt-1 flex h-4 items-center justify-between">
-        <span className="tabular text-[10px] text-ink-600">0:00</span>
-        {hovered ? (
-          <span className="tabular truncate px-2 text-[10px] text-ink-300">
-            {formatTimestamp(hovered.start_s)} · {hovered.title}
+          {/* Playhead. A hairline is invisible against a busy bar, so it gets a
+              contrasting outline and a handle. */}
+          <span
+            style={{ left: `${playheadPct}%` }}
+            className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-ink-50 shadow-[0_0_0_1px_rgba(0,0,0,0.7)]"
+          >
+            <span className="absolute -top-px left-1/2 h-1.5 w-1.5 -translate-x-1/2 rotate-45 bg-ink-50" />
           </span>
-        ) : (
-          <span className="text-[10px] text-ink-600">click to seek</span>
-        )}
-        <span className="tabular text-[10px] text-ink-600">{formatTimestamp(duration)}</span>
+
+          {hovered && (
+            <span
+              style={{ left: `${hovered.pct}%` }}
+              className="pointer-events-none absolute inset-y-0 w-px -translate-x-1/2 bg-ink-50/50"
+            />
+          )}
+        </div>
+
+        <div className="mt-1.5 flex h-4 items-center justify-between gap-3">
+          <span className="tabular shrink-0 text-2xs text-ink-500">0:00</span>
+          {hovered ? (
+            <span className="tabular min-w-0 truncate text-2xs text-ink-200">
+              <span
+                className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle ${
+                  (EVENT_STYLES[hovered.event.type] ?? { className: "bg-ink-400" }).className
+                }`}
+              />
+              {formatTimestamp(hovered.event.start_s)} · {hovered.event.title}
+            </span>
+          ) : (
+            <span className="text-2xs text-ink-500">
+              Click to seek · arrow keys to nudge
+            </span>
+          )}
+          <span className="tabular shrink-0 text-2xs text-ink-500">
+            {formatTimestamp(duration)}
+          </span>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

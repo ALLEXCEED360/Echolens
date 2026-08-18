@@ -363,3 +363,70 @@ class TestCascade:
         async with SessionLocal() as session:
             remaining = (await session.execute(select(Chunk))).scalars().all()
         assert remaining == []
+
+
+class TestLexicalGuarantee:
+    """An exact match must be *considered*, even when semantic cannot see it.
+
+    Down-weighting lexical to 0.25 fixed fused ranking overall and created a
+    blind spot: the best possible lexical-only score is 0.25/(k+1) = 0.0041,
+    while the worst semantic score is 1/(k+50) = 0.0091. A chunk found only by
+    lexical therefore could not outrank *any* semantic result, however exact.
+
+    Measured on the real corpus: a query for "launch codes" against a clip
+    whose transcript says "I want the launch codes, Mr. President" placed that
+    chunk at lexical rank 1, absent from semantic, and **fused rank 51** —
+    outside the pool. Search returned ten unrelated OCR fragments and reported
+    nothing relevant.
+    """
+
+    async def test_lexical_only_hit_reaches_the_pool(self) -> None:
+        async with SessionLocal() as session:
+            video_id, children = await seed(session)
+            # A chunk whose wording no query vector will land near, carrying a
+            # distinctive exact term.
+            outlier = Chunk(
+                video_id=video_id,
+                parent_id=children[0].parent_id,
+                kind=ChunkKind.TRANSCRIPT,
+                level=ChunkLevel.CHILD,
+                position=99,
+                start_s=900.0,
+                end_s=915.0,
+                text="I want the launch codes, Mr President",
+                token_count=8,
+                # Deliberately orthogonal to the query vector used below.
+                embedding=unit_vector(900),
+                embedding_model="test",
+            )
+            session.add(outlier)
+            await session.commit()
+            outlier_id = outlier.id
+
+            result = await hybrid_search(
+                session, "launch codes", unit_vector(0), limit=10
+            )
+
+        assert outlier_id in [h.chunk_id for h in result.hits], (
+            "an exact lexical match was excluded from the results entirely"
+        )
+
+    async def test_guarantee_does_not_displace_fused_ordering(self) -> None:
+        """The safety net adds candidates; it must not reorder good ones."""
+        async with SessionLocal() as session:
+            _, children = await seed(session)
+            result = await hybrid_search(
+                session, "Rigidbody2D component", unit_vector(0), limit=4
+            )
+
+        # The chunk both retrievers like still leads.
+        assert result.hits[0].chunk_id == children[0].id
+
+    async def test_only_real_candidates_are_promoted(self) -> None:
+        """Nothing outside the fused set may be injected."""
+        async with SessionLocal() as session:
+            await seed(session)
+            result = await hybrid_search(session, "kubernetes helm", unit_vector(3), limit=5)
+
+        # No lexical match exists; results come from semantic alone.
+        assert all(h.lexical_rank is None for h in result.hits)

@@ -102,6 +102,58 @@ document.querySelectorAll('.transcript-row').length   // ~30, not ~6000
 audio track. The speech stages must read `skipped` with reason "no audio stream"
 and the job must still succeed.
 
+**If a transcript comes back nearly empty**, check the speech-coverage badge on
+the transcript panel before assuming failure. Whisper only transcribes detected
+speech, so music, effects and silence are skipped rather than guessed at — a
+low percentage is often correct.
+
+But it can also be voice-activity detection discarding real speech. VAD decides
+what counts as speech *before* the model hears it, and dialogue mixed under
+loud effects loses that argument. Measured on a 65-second game clip:
+
+| | segments | speech |
+| --- | --- | --- |
+| `whisper_vad_filter=true` (default) | 1 | 8.3 s |
+| `whisper_vad_filter=false` | **15** | **39.0 s** |
+
+Every recovered line was confirmed against the game's own burned-in subtitles,
+read independently by OCR — the two modalities cross-checking each other.
+
+**Set it per video, from the page.** The dropdown beside the transcribe button
+offers *Clear speech* (the default — lectures, screencasts) and *Noisy audio*
+(gameplay, film, anything where dialogue sits under music and effects). The
+choice is recorded on the job, so it survives restarts and stays visible
+afterwards in the Details tab.
+
+```bash
+curl -X POST "http://localhost:8000/api/videos/{id}/process?stages=speech&audio=noisy"
+```
+
+`ECHOLENS_WHISPER_VAD_FILTER` still sets the *default* for new jobs, but the
+per-video control is the one to reach for — a server-wide setting cannot be
+right for a lecture and a firefight at the same time, and it is silently lost
+when a video is re-uploaded.
+
+**Names come out wrong?** Whisper renders unfamiliar proper nouns as whatever
+sounds closest — a character called *Harkov* came back as *"Raccoon"*. Put the
+names in the box beside the transcribe button:
+
+```bash
+curl -X POST "…/process?stages=speech&audio=noisy&vocabulary=Makarov,%20Harkov,%20Vorshevsky"
+```
+
+Sent as `hotwords`, not `initial_prompt`. Measured on the same clip, an initial
+prompt made the model transcribe *the prompt itself* — the tail came back as
+"Harkov, Vorshevsky, Modern Warfare".
+
+**Invented lines at the end of noisy audio** are dropped automatically. Whisper
+falls into repetition loops there and flags them with a raised
+`no_speech_prob`, which the pipeline now acts on: across 5,765 segments of a
+real tutorial genuine speech never exceeded **0.125**, while every hallucinated
+tail segment scored **0.30 or higher**. The threshold sits at 0.25, and the
+count is reported as `dropped_non_speech` in the stage metrics rather than
+filtered silently.
+
 ---
 
 ## 3 · Visual pipeline
@@ -119,8 +171,39 @@ and the job must still succeed.
 curl -s "http://localhost:8000/api/videos/{id}/keyframes?limit=5&with_text_only=true" | head -c 400
 ```
 
+Expect **5** frames, all carrying text, and a `total` equal to the number of
+frames with text in the whole video — not the size of this page. Deep offsets
+must behave the same:
+
+```bash
+curl -s "http://localhost:8000/api/videos/{id}/keyframes?limit=3&with_text_only=true&offset=600"
+```
+
 Or scroll the filmstrip under the player. Frames carrying text are badged **T**;
 hover shows what was read.
+
+**Verify — on-screen text reaches the answer.** Every search hit carries the
+frame that was showing at that moment:
+
+```bash
+curl -s "http://localhost:8000/api/search?q=how+do+I+make+the+player+jump&kinds=transcript" | grep -o '"on_screen_text":"[^"]\{0,60\}'
+```
+
+If this is `null` for *every* hit across the corpus, the `ocr_blocks` table is
+empty — see the warning below.
+
+> **If the filmstrip reads `N frames · 0 with text`**, OCR did not complete for
+> the current keyframes. Re-run just that stage:
+>
+> ```bash
+> curl -s -X POST "http://localhost:8000/api/videos/{id}/process?stages=ocr"
+> ```
+>
+> This state used to be reachable and invisible: the keyframes stage replaced
+> every frame, which cascaded and deleted their OCR blocks, so if OCR then
+> failed the video kept answering searches from `kind=ocr` chunks while
+> `on_screen_text` was `null` everywhere. The stage now reconciles frames
+> instead of replacing them, so re-running the visual branch preserves OCR.
 
 **Verify — OCR quality is resolution-bound.** This is a property of your source,
 not a bug. At 640×360 expect ~0.75 mean confidence with visible errors
@@ -151,7 +234,10 @@ curl -s "http://localhost:8000/api/search?q=what+is+a+prefab&limit=3" | head -c 
 ```
 
 Each hit shows `vec` / `kw` tags for which retriever found it, a cross-encoder
-score, and `↑N` when reranking promoted it.
+score, and `↑N` when reranking promoted it. Hits read off the screen carry a
+**SCREEN** badge, are set in monospace, and show the spoken line beneath as
+`said here:` — OCR of a 360p code editor is a good locator but poor reading
+material, and unlabelled it looks like the search returned nonsense.
 
 **Verify — reranking actually changes the answer.** Compare:
 

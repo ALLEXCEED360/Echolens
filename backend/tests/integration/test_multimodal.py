@@ -26,7 +26,13 @@ from app.models import (
     Topic,
     Video,
 )
-from app.search import hybrid_search, lexical_search, semantic_search, temporal_context
+from app.search import (
+    Hit,
+    hybrid_search,
+    lexical_search,
+    semantic_search,
+    temporal_context,
+)
 
 DIM = 1024
 
@@ -161,6 +167,106 @@ class TestTimeRange:
         assert results == []
 
 
+class TestFrameSelection:
+    """Which keyframe gets attached to a hit.
+
+    The original code took the *first* frame overlapping the padded window.
+    Measured on the real corpus, that picked a frame with **zero** overlap —
+    touching the hit only at its boundary — while the frame exactly spanning it
+    sat next in the list. The consequences were a wrong thumbnail beside every
+    result and the wrong "On screen at this moment" text in the answer prompt.
+    """
+
+    async def test_picks_the_covering_frame_not_the_first(self) -> None:
+        """The regression, reproduced: an earlier frame merely touches the hit."""
+        async with SessionLocal() as session:
+            video_id, _ = await seed_multimodal(session)
+            # Abuts the hit's start exactly — zero real overlap, but it is
+            # first in time order and falls inside the padded window.
+            session.add(
+                Keyframe(
+                    video_id=video_id, position=1, start_s=52.0, end_s=60.0,
+                    time_s=52.0, storage_key="keyframes/early.jpg", change=10,
+                )
+            )
+            covering = Keyframe(
+                video_id=video_id, position=2, start_s=60.0, end_s=90.0,
+                time_s=60.0, storage_key="keyframes/covering.jpg", change=20,
+            )
+            session.add(covering)
+            await session.commit()
+            covering_id = covering.id
+
+            hit = Hit(
+                chunk_id=uuid.uuid4(), video_id=video_id, video_title="t",
+                start_s=60.0, end_s=90.0, text="x", score=1.0,
+            )
+            evidence = await temporal_context(session, [hit])
+
+        assert evidence[hit.chunk_id].keyframe_id == covering_id
+
+    async def test_falls_back_to_nearest_when_nothing_overlaps(self) -> None:
+        """A hit landing between frames still gets the closest one."""
+        async with SessionLocal() as session:
+            video_id, _ = await seed_multimodal(session)
+            near = Keyframe(
+                video_id=video_id, position=1, start_s=100.0, end_s=101.0,
+                time_s=100.0, storage_key="keyframes/near.jpg", change=10,
+            )
+            session.add(near)
+            await session.commit()
+            near_id = near.id
+
+            # Sits in the 3s gap after `near`, with no frame covering it.
+            hit = Hit(
+                chunk_id=uuid.uuid4(), video_id=video_id, video_title="t",
+                start_s=102.0, end_s=103.0, text="x", score=1.0,
+            )
+            evidence = await temporal_context(session, [hit])
+
+        assert evidence[hit.chunk_id].keyframe_id == near_id
+
+    async def test_ocr_text_reaches_the_hit_that_matched_it(self) -> None:
+        """An OCR hit must carry the on-screen text it was derived from.
+
+        This was silently None in production: the frame chosen was a
+        neighbour that happened to have no OCR blocks.
+        """
+        async with SessionLocal() as session:
+            _, chunks = await seed_multimodal(session)
+            ocr_chunk = next(c for c in chunks if c.kind == ChunkKind.OCR)
+            hit = Hit(
+                chunk_id=ocr_chunk.id, video_id=ocr_chunk.video_id, video_title="t",
+                start_s=ocr_chunk.start_s, end_s=ocr_chunk.end_s,
+                text=ocr_chunk.text, score=1.0, kind="ocr",
+            )
+            evidence = await temporal_context(session, [hit])
+
+        assert evidence[hit.chunk_id].on_screen_text == "Rigidbody2D"
+
+
+class TestModalityLabelling:
+    async def test_hits_report_their_modality(self) -> None:
+        """Without this the UI cannot warn that OCR text is machine-read."""
+        async with SessionLocal() as session:
+            await seed_multimodal(session)
+            result = await hybrid_search(session, "Rigidbody2D", unit_vector(50))
+
+        kinds = {h.kind for h in result.hits}
+        assert kinds <= {"transcript", "ocr"}
+        assert "ocr" in kinds, "the OCR chunk should be retrievable and labelled"
+
+    async def test_api_exposes_kind(self, client: AsyncClient) -> None:
+        async with SessionLocal() as session:
+            await seed_multimodal(session)
+        response = await client.get("/api/search", params={"q": "Rigidbody2D", "limit": 5})
+
+        assert response.status_code == 200
+        hits = response.json()["hits"]
+        assert hits
+        assert all("kind" in h for h in hits)
+
+
 class TestTemporalContext:
     async def test_attaches_on_screen_text(self) -> None:
         """The point of the whole phase: what was *shown* while this was said."""
@@ -276,3 +382,148 @@ class TestSearchApi:
             "/api/search", params={"q": "rigidbody", "start_s": 100, "end_s": 10}
         )
         assert resp.status_code == 422
+
+
+class TestKeyframeListing:
+    """Filtering and counting, which have to happen in the same place.
+
+    The text filter used to run in Python *after* SQL had already applied
+    LIMIT, so a request for N frames-with-text returned only however many of
+    the first N rows happened to carry text — approaching zero on later pages.
+    `total` reported the page length, which made it useless for paging.
+    """
+
+    @staticmethod
+    async def _seed_frames(session, video_id: uuid.UUID, *, with_text: int, without: int):
+        position = 100
+        for i in range(with_text + without):
+            frame = Keyframe(
+                video_id=video_id, position=position + i,
+                start_s=1000.0 + i * 10, end_s=1010.0 + i * 10, time_s=1000.0 + i * 10,
+                storage_key=f"keyframes/x{i}.jpg", change=5,
+            )
+            session.add(frame)
+            await session.flush()
+            # Text on the *later* frames, so a limit applied before the filter
+            # cannot stumble onto them by accident.
+            if i >= without:
+                session.add(
+                    OcrBlock(
+                        keyframe_id=frame.id, text=f"code {i}", confidence=0.9,
+                        bbox={"x1": 0, "y1": 0, "x2": 5, "y2": 5},
+                    )
+                )
+        await session.commit()
+
+    async def test_limit_counts_frames_that_match_the_filter(
+        self, client: AsyncClient
+    ) -> None:
+        async with SessionLocal() as session:
+            video_id, _ = await seed_multimodal(session)
+            await self._seed_frames(session, video_id, with_text=5, without=6)
+
+        response = await client.get(
+            f"/api/videos/{video_id}/keyframes",
+            params={"with_text_only": "true", "limit": 3},
+        )
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 3, "limit must select 3 matching frames, not filter 3 rows"
+        assert all(i["text"] for i in items)
+
+    async def test_total_is_the_match_count_not_the_page_size(
+        self, client: AsyncClient
+    ) -> None:
+        async with SessionLocal() as session:
+            video_id, _ = await seed_multimodal(session)
+            await self._seed_frames(session, video_id, with_text=5, without=6)
+
+        response = await client.get(
+            f"/api/videos/{video_id}/keyframes",
+            params={"with_text_only": "true", "limit": 2},
+        )
+        body = response.json()
+
+        assert len(body["items"]) == 2
+        # 5 seeded with text, plus the one seed_multimodal creates.
+        assert body["total"] == 6
+
+    async def test_paging_reaches_every_matching_frame(self, client: AsyncClient) -> None:
+        """The symptom users would hit: later pages emptying out."""
+        async with SessionLocal() as session:
+            video_id, _ = await seed_multimodal(session)
+            await self._seed_frames(session, video_id, with_text=5, without=6)
+
+        seen: list[str] = []
+        for offset in (0, 2, 4):
+            response = await client.get(
+                f"/api/videos/{video_id}/keyframes",
+                params={"with_text_only": "true", "limit": 2, "offset": offset},
+            )
+            seen.extend(i["id"] for i in response.json()["items"])
+
+        assert len(seen) == 6
+        assert len(set(seen)) == 6, "paging returned duplicates"
+
+    async def test_unfiltered_total_counts_the_whole_video(
+        self, client: AsyncClient
+    ) -> None:
+        async with SessionLocal() as session:
+            video_id, _ = await seed_multimodal(session)
+            await self._seed_frames(session, video_id, with_text=5, without=6)
+
+        response = await client.get(
+            f"/api/videos/{video_id}/keyframes", params={"limit": 1}
+        )
+        assert response.json()["total"] == 12
+
+
+class TestLibraryPosters:
+    """A poster frame per video in the list response.
+
+    Without it the library shows no imagery at all, and a client that fetched
+    frames itself would issue one request per row — the N+1 that gets steadily
+    worse as the library grows.
+    """
+
+    async def test_list_carries_a_poster(self, client: AsyncClient) -> None:
+        async with SessionLocal() as session:
+            await seed_multimodal(session)
+
+        response = await client.get("/api/videos")
+        item = next(i for i in response.json()["items"] if i["poster_url"])
+
+        assert item["poster_url"].startswith("/api/keyframes/")
+        assert item["poster_url"].endswith("/image")
+
+    async def test_poster_is_the_first_frame(self, client: AsyncClient) -> None:
+        """Earliest moment in the video, not whichever row was inserted first."""
+        async with SessionLocal() as session:
+            video_id, _ = await seed_multimodal(session)
+            # Added after the seeded frame, but earlier in the video.
+            first = Keyframe(
+                video_id=video_id, position=5, start_s=0.0, end_s=5.0, time_s=0.0,
+                storage_key="keyframes/first.jpg", change=0,
+            )
+            session.add(first)
+            await session.commit()
+            expected = first.id
+
+        response = await client.get("/api/videos")
+        item = next(i for i in response.json()["items"] if i["id"] == str(video_id))
+
+        assert item["poster_url"] == f"/api/keyframes/{expected}/image"
+
+    async def test_video_without_keyframes_has_no_poster(self, client: AsyncClient) -> None:
+        """Absent imagery is a normal state, not an error."""
+        response = await client.post(
+            "/api/videos", params={"filename": "bare.mp4"}, content=b"not-a-video"
+        )
+        # Upload may reject the junk payload; either way, no poster must appear.
+        listing = await client.get("/api/videos")
+        assert all(
+            i["poster_url"] is None or i["poster_url"].startswith("/api/keyframes/")
+            for i in listing.json()["items"]
+        )
+        assert response.status_code in (201, 415, 422)

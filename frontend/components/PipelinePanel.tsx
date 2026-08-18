@@ -1,78 +1,112 @@
 "use client";
 
+import { Icon, type IconName } from "@/components/ui/Icon";
+import { Disclosure, ErrorNote, Spinner } from "@/components/ui";
 import { STAGE_LABELS, STAGE_PHASE, type Job, type StageStatus } from "@/lib/types";
 
 const CURRENT_PHASE = 4;
 
-const MARKS: Record<StageStatus, { glyph: string; className: string }> = {
-  succeeded: { glyph: "✓", className: "text-accent-400" },
-  running: { glyph: "◐", className: "text-warn-400" },
-  failed: { glyph: "✕", className: "text-danger-400" },
-  skipped: { glyph: "–", className: "text-ink-600" },
-  waiting: { glyph: "○", className: "text-ink-600" },
+/**
+ * Stage status.
+ *
+ * Icons rather than the glyph characters this used before (`✓ ◐ ✕ ○`): those
+ * render at wildly different weights across fonts, and a screen reader
+ * announces "check mark" or nothing at all depending on the platform. Each
+ * status also has its own shape, so the meaning survives without colour.
+ */
+const MARKS: Record<StageStatus, { icon: IconName; className: string; label: string }> = {
+  succeeded: { icon: "check", className: "text-accent-400", label: "Succeeded" },
+  running: { icon: "refresh", className: "text-warn-400", label: "Running" },
+  failed: { icon: "alert", className: "text-danger-400", label: "Failed" },
+  skipped: { icon: "close", className: "text-ink-500", label: "Skipped" },
+  waiting: { icon: "clock", className: "text-ink-500", label: "Waiting" },
 };
 
 export function PipelinePanel({ job }: { job: Job | null }) {
-  if (!job) {
-    return (
-      <Section title="Pipeline">
-        <p className="text-xs text-ink-400">No processing job for this video.</p>
-      </Section>
-    );
-  }
+  const running = job?.status === "queued" || job?.status === "running";
 
   return (
-    <Section title="Pipeline">
-      <ul className="space-y-0.5">
-        {job.stages.map((stage) => {
-          const mark = MARKS[stage.status];
-          const phase = STAGE_PHASE[stage.name] ?? 99;
-          const notBuilt = phase > CURRENT_PHASE;
+    <Disclosure title="Pipeline" defaultOpen={Boolean(running || job?.error)}>
+      {!job ? (
+        <p className="py-1 text-xs text-ink-500">This video has not been processed yet.</p>
+      ) : (
+        <>
+          <ul className="space-y-px">
+            {job.stages.map((stage) => {
+              const mark = MARKS[stage.status];
+              const phase = STAGE_PHASE[stage.name] ?? 99;
+              const notBuilt = phase > CURRENT_PHASE;
 
-          return (
-            <li key={stage.name} className="flex items-center gap-2.5 py-1">
-              <span className={`w-3 shrink-0 text-center text-xs ${mark.className}`}>
-                {mark.glyph}
-              </span>
-              <span
-                className={`flex-1 truncate text-xs ${notBuilt ? "text-ink-600" : "text-ink-200"}`}
-              >
-                {STAGE_LABELS[stage.name] ?? stage.name}
-              </span>
+              return (
+                <li key={stage.name} className="flex items-center gap-2.5 py-1">
+                  {stage.status === "running" ? (
+                    <Spinner size={13} className="shrink-0 text-warn-400" />
+                  ) : (
+                    <Icon
+                      name={mark.icon}
+                      size={13}
+                      className={`shrink-0 ${mark.className}`}
+                    />
+                  )}
+                  <span className="sr-only">{mark.label}:</span>
+                  <span
+                    className={`flex-1 truncate text-xs ${
+                      notBuilt ? "text-ink-500" : "text-ink-200"
+                    }`}
+                  >
+                    {STAGE_LABELS[stage.name] ?? stage.name}
+                  </span>
 
-              {stage.status === "running" && (
-                <span className="tabular shrink-0 text-[11px] text-warn-400">
-                  {Math.round(stage.progress * 100)}%
-                </span>
-              )}
-              {/* Honest about what exists rather than showing a bar that will
-                  never move. */}
-              {notBuilt && stage.status === "waiting" && (
-                <span className="shrink-0 text-[10px] uppercase tracking-wide text-ink-600">
-                  phase {phase}
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                  {stage.status === "running" && (
+                    <span className="tabular shrink-0 text-2xs text-warn-400">
+                      {Math.round(stage.progress * 100)}%
+                    </span>
+                  )}
+                  {/* Honest about what exists rather than showing a bar that
+                      will never move. */}
+                  {notBuilt && stage.status === "waiting" && (
+                    <span className="shrink-0 text-2xs uppercase tracking-wide text-ink-500">
+                      phase {phase}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
 
-      {job.error && (
-        <p className="mt-3 rounded border border-danger-400/30 bg-danger-400/10 px-2.5 py-2 text-xs text-danger-400">
-          {job.error}
-        </p>
+          {stageProgressBar(job)}
+
+          {job.error && (
+            <div className="mt-3">
+              <ErrorNote>{job.error}</ErrorNote>
+            </div>
+          )}
+        </>
       )}
-    </Section>
+    </Disclosure>
   );
 }
 
-export function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** A single overall bar, shown only while there is genuine movement to report. */
+function stageProgressBar(job: Job) {
+  if (job.status !== "running" && job.status !== "queued") return null;
+  const pct = Math.round((job.progress ?? 0) * 100);
   return (
-    <section className="border-b border-ink-800 px-4 py-4">
-      <h2 className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-ink-400">
-        {title}
-      </h2>
-      {children}
-    </section>
+    <div className="mt-3">
+      <div
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Overall processing progress"
+        className="h-1 overflow-hidden rounded-full bg-ink-800"
+      >
+        <div
+          className="h-full rounded-full bg-accent-500 transition-[width] duration-500 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="tabular mt-1.5 text-2xs text-ink-500">{pct}% overall</p>
+    </div>
   );
 }

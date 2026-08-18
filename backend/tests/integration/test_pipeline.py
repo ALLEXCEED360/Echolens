@@ -89,7 +89,9 @@ class TestJobExecution:
         """Stops before Whisper: we are testing our stage, not the model."""
         monkeypatch.setattr(runner, "enqueue", lambda jid: _noop())
 
-        async def fake_transcribe(session, job_id, video, audio_path):
+        # **kwargs so the stub tolerates per-run options (vad_filter and
+        # anything later) without this test caring about them.
+        async def fake_transcribe(session, job_id, video, audio_path, **_options):
             assert audio_path.exists(), "transcribe stage got a missing audio file"
             await runner._set_stage(
                 session, job_id, StageName.TRANSCRIBE, status=StageStatus.SUCCEEDED

@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.db import get_session
-from app.models import Video, VideoStatus
+from app.models import Keyframe, Video, VideoStatus
 from app.probe import ProbeError, probe
 from app.ranges import InvalidRange, parse_range, range_headers
 from app.schemas import VideoDetail, VideoList, VideoSummary, VideoUpdate
@@ -198,12 +198,35 @@ async def list_videos(
     rows = (await session.execute(stmt)).scalars().all()
     total = (await session.execute(count_stmt)).scalar_one()
 
-    return VideoList(
-        items=[VideoSummary.model_validate(v) for v in rows],
-        total=total,
-        limit=limit,
-        offset=offset,
-    )
+    # A poster frame per video, in one query rather than one per row.
+    #
+    # A library of videos that shows no video is a strange thing, and the
+    # frames already exist — a client fetching them itself would need an extra
+    # request per row, which is the classic N+1 and gets worse as the library
+    # grows. DISTINCT ON takes the earliest keyframe of each video in a single
+    # pass.
+    posters: dict[uuid.UUID, uuid.UUID] = {}
+    if rows:
+        poster_stmt = (
+            select(Keyframe.video_id, Keyframe.id)
+            .where(Keyframe.video_id.in_([v.id for v in rows]))
+            .distinct(Keyframe.video_id)
+            # By time, not by `position`: position is an index that ties can
+            # break arbitrarily, whereas "the earliest moment in the video" is
+            # exactly what a poster frame should be.
+            .order_by(Keyframe.video_id, Keyframe.start_s)
+        )
+        posters = {r[0]: r[1] for r in (await session.execute(poster_stmt)).all()}
+
+    items = []
+    for video in rows:
+        summary = VideoSummary.model_validate(video)
+        keyframe_id = posters.get(video.id)
+        if keyframe_id is not None:
+            summary.poster_url = f"/api/keyframes/{keyframe_id}/image"
+        items.append(summary)
+
+    return VideoList(items=items, total=total, limit=limit, offset=offset)
 
 
 @router.get("/{video_id}", response_model=VideoDetail, summary="Video detail")

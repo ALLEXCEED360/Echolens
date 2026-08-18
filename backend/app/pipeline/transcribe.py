@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,6 +44,15 @@ class Transcript:
     language_probability: float
     duration_s: float
     model: str
+    # Verbatim repeats of the preceding line, discarded as decoder loops.
+    # Reported rather than silently swallowed: a filter nobody can see is a
+    # filter nobody can question.
+    dropped_segments: int = 0
+
+
+def _norm(text: str) -> str:
+    """Compare lines ignoring case, punctuation and spacing."""
+    return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
 
 
 def _get_model(name: str, device_preference: str):
@@ -75,30 +85,77 @@ def transcribe_sync(
     device: str = "auto",
     language: str | None = None,
     beam_size: int = 5,
+    vad_filter: bool = True,
+    vad_threshold: float = 0.5,
+    vocabulary: str | None = None,
     progress: Callable[[float], None] | None = None,
 ) -> Transcript:
     model, resolved_device, compute_type = _get_model(model_name, device)
 
     # vad_filter suppresses Whisper's well-documented habit of inventing text
     # over silence — "Thank you for watching" and similar training artefacts.
+    #
+    # It is not free, though: VAD judges what is speech *before* the model
+    # hears it, so on audio where dialogue is buried under effects it throws
+    # away real lines. Measured on a 65 s game clip, it kept 8.3 s where
+    # disabling it recovered 39 s — every extra line confirmed by the game's
+    # own burned-in subtitles. Hence a setting rather than a constant.
+    options: dict = {"vad_filter": vad_filter}
+    if vad_filter:
+        options["vad_parameters"] = {"threshold": vad_threshold}
+
+    # Domain vocabulary, biasing the decoder toward names it would otherwise
+    # guess at. Whisper rendered a character called Harkov as "Raccoon" until
+    # given the cast list.
+    #
+    # `hotwords` rather than `initial_prompt`: measured on the same clip, an
+    # initial prompt combined with `condition_on_previous_text=False` caused the
+    # model to transcribe *the prompt itself* — the tail of the transcript came
+    # back as "Harkov, Vorshevsky, Modern Warfare". Hotwords bias without
+    # entering the decoding context.
+    if vocabulary:
+        options["hotwords"] = vocabulary
+
     raw_segments, info = model.transcribe(
         str(audio_path),
         language=language,
         beam_size=beam_size,
-        vad_filter=True,
         word_timestamps=False,
+        **options,
     )
 
     segments: list[Segment] = []
+    dropped = 0
     # faster-whisper yields lazily; work happens as we iterate, which is what
     # lets progress track real decoding rather than jumping 0 → 100.
     iterator: Iterator = raw_segments
     for seg in iterator:
+        text = seg.text.strip()
+
+        # Drop a line that merely repeats the one before it.
+        #
+        # Near the end of noisy audio the decoder falls into repetition loops
+        # and emits the same sentence two or three times. That is the artefact
+        # worth removing, and identical consecutive lines are essentially never
+        # genuine — a speaker repeating themselves verbatim, back to back, with
+        # no gap, does not happen.
+        #
+        # **This replaces a `no_speech_prob` threshold, which was unsound.** That
+        # score is relative to the decoding conditions, not an absolute measure:
+        # validated against a clean corpus transcribed with VAD on it never
+        # exceeded 0.125, but with VAD off genuine dialogue routinely scored
+        # 0.44 — *higher* than the 0.30 hallucination it was meant to catch. The
+        # threshold deleted five real lines and reduced one video to nothing.
+        if segments and _norm(text) and _norm(text) == _norm(segments[-1].text):
+            dropped += 1
+            logger.debug("Dropped repeated segment at %.1fs: %r", seg.start, text[:60])
+            continue
+
         segments.append(
             Segment(
                 start_s=round(seg.start, 3),
                 end_s=round(seg.end, 3),
-                text=seg.text.strip(),
+                text=text,
                 avg_logprob=seg.avg_logprob,
                 no_speech_prob=seg.no_speech_prob,
                 compression_ratio=seg.compression_ratio,
@@ -116,8 +173,12 @@ def transcribe_sync(
         compute_type,
     )
 
+    if dropped:
+        logger.info("Dropped %d repeated segment(s)", dropped)
+
     return Transcript(
         segments=segments,
+        dropped_segments=dropped,
         language=info.language,
         language_probability=round(info.language_probability, 4),
         duration_s=round(info.duration, 3),
@@ -132,6 +193,9 @@ async def transcribe(
     device: str = "auto",
     language: str | None = None,
     beam_size: int = 5,
+    vad_filter: bool = True,
+    vad_threshold: float = 0.5,
+    vocabulary: str | None = None,
     progress: Callable[[float], None] | None = None,
 ) -> Transcript:
     """Transcribe off the event loop — inference blocks."""
@@ -142,5 +206,8 @@ async def transcribe(
         device=device,
         language=language,
         beam_size=beam_size,
+        vad_filter=vad_filter,
+        vad_threshold=vad_threshold,
+        vocabulary=vocabulary,
         progress=progress,
     )

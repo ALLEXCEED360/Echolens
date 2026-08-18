@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
@@ -87,6 +88,28 @@ async def start_processing(
         ),
         examples=["visual", "keyframes,ocr,embed"],
     ),
+    audio: Literal["clear", "noisy"] = Query(
+        "clear",
+        description=(
+            "What the audio is like, which decides whether voice-activity "
+            "detection runs. `clear` (default) suits lectures and screencasts: "
+            "VAD stops Whisper inventing text over silence. `noisy` suits "
+            "gameplay, film and anything where speech sits under music and "
+            "effects — VAD discards that speech as non-speech, and on a 65 s "
+            "game clip it kept 8.3 s where `noisy` recovered 39 s."
+        ),
+    ),
+    vocabulary: str | None = Query(
+        None,
+        max_length=512,
+        description=(
+            "Comma-separated names and jargon to bias transcription toward — "
+            "character names, product names, API identifiers. Whisper renders "
+            "unfamiliar proper nouns as whatever sounds closest, so a cast list "
+            "turns 'Raccoon' back into 'Harkov'."
+        ),
+        examples=["Makarov, Harkov, Vorshevsky"],
+    ),
     session: AsyncSession = Depends(get_session),
 ) -> ProcessingJob:
     video = await session.get(Video, video_id)
@@ -118,6 +141,13 @@ async def start_processing(
     job = ProcessingJob(
         video_id=video_id,
         status=JobStatus.QUEUED,
+        # Recorded on the job, not read from server config at run time: the
+        # choice belongs to this media, must survive a restart, and must stay
+        # visible afterwards when someone asks why a transcript looks thin.
+        options={
+            "vad_filter": audio == "clear",
+            "vocabulary": (vocabulary or "").strip() or None,
+        },
         stages=[
             JobStage(
                 name=name,

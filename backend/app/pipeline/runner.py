@@ -214,7 +214,12 @@ async def _stage_audio(session: AsyncSession, job_id: UUID, video: Video) -> Pat
 
 
 async def _stage_transcribe(
-    session: AsyncSession, job_id: UUID, video: Video, audio_path: Path
+    session: AsyncSession,
+    job_id: UUID,
+    video: Video,
+    audio_path: Path,
+    vad_filter: bool | None = None,
+    vocabulary: str | None = None,
 ) -> int:
     name = StageName.TRANSCRIBE
     await _set_stage(session, job_id, name, status=StageStatus.RUNNING)
@@ -228,6 +233,9 @@ async def _stage_transcribe(
         model_name=settings.whisper_model,
         device=settings.whisper_device,
         language=settings.whisper_language or None,
+        vad_filter=vad_filter if vad_filter is not None else settings.whisper_vad_filter,
+        vad_threshold=settings.whisper_vad_threshold,
+        vocabulary=vocabulary,
         progress=_throttled(job_id, name, loop),
     )
 
@@ -261,6 +269,9 @@ async def _stage_transcribe(
         status=StageStatus.SUCCEEDED,
         metrics={
             "segments": len(result.segments),
+            "vad_filter": vad_filter if vad_filter is not None else settings.whisper_vad_filter,
+            "vocabulary": vocabulary or None,
+            "dropped_repeats": result.dropped_segments,
             "language": result.language,
             "language_probability": result.language_probability,
             "model": result.model,
@@ -342,24 +353,60 @@ async def _stage_keyframes(session: AsyncSession, job_id: UUID, video: Video) ->
         source, candidates, frames_dir, max_width=settings.keyframe_max_width
     )
 
-    # Replace rather than append: re-running must not duplicate keyframes.
-    await session.execute(KeyframeRow.__table__.delete().where(KeyframeRow.video_id == video.id))
-    await session.commit()
-
-    rows = [
-        KeyframeRow(
-            video_id=video.id,
-            position=i,
-            start_s=candidate.start_s,
-            end_s=candidate.end_s,
-            time_s=candidate.time_s,
-            storage_key=str(path.relative_to(settings.storage_local_path)).replace("\\", "/"),
-            phash=f"{candidate.phash:016x}",
-            change=candidate.change,
+    # Reconcile rather than replace.
+    #
+    # This used to delete every keyframe for the video and insert fresh rows.
+    # That is correct in isolation and quietly destructive in practice: OCR
+    # blocks hang off keyframe rows, so the delete cascaded and wiped them, and
+    # if the *later* OCR stage then failed — a server restart mid-run is enough
+    # — the video was left with frames carrying no text at all. Nothing
+    # surfaced it, because the `ocr` chunks live in a different table and kept
+    # answering searches. `on_screen_text` was silently None for the whole
+    # corpus, taking the frame text badges, the `with_text_only` filter and the
+    # "On screen at this moment" line of every answer prompt with it.
+    #
+    # Scanning is deterministic, so re-running normally produces the identical
+    # frames. Matching on `(start_s, phash)` keeps those rows — and their OCR —
+    # and touches only what genuinely changed.
+    existing = (
+        await session.execute(
+            select(KeyframeRow).where(KeyframeRow.video_id == video.id)
         )
-        for i, (candidate, path) in enumerate(zip(candidates, paths, strict=False))
-    ]
-    session.add_all(rows)
+    ).scalars().all()
+    by_identity = {(round(k.start_s, 2), k.phash): k for k in existing}
+
+    rows: list[KeyframeRow] = []
+    reused = 0
+    for i, (candidate, path) in enumerate(zip(candidates, paths, strict=False)):
+        storage_key = str(path.relative_to(settings.storage_local_path)).replace("\\", "/")
+        identity = (round(candidate.start_s, 2), f"{candidate.phash:016x}")
+
+        row = by_identity.pop(identity, None)
+        if row is not None:
+            # Same frame, possibly at a new index if neighbours changed.
+            row.position = i
+            row.end_s = candidate.end_s
+            row.time_s = candidate.time_s
+            row.storage_key = storage_key
+            row.change = candidate.change
+            reused += 1
+        else:
+            row = KeyframeRow(
+                video_id=video.id,
+                position=i,
+                start_s=candidate.start_s,
+                end_s=candidate.end_s,
+                time_s=candidate.time_s,
+                storage_key=storage_key,
+                phash=f"{candidate.phash:016x}",
+                change=candidate.change,
+            )
+            session.add(row)
+        rows.append(row)
+
+    # Whatever the new scan did not claim is genuinely gone from the video.
+    for stale in by_identity.values():
+        await session.delete(stale)
     await session.commit()
 
     await _set_stage(
@@ -367,6 +414,7 @@ async def _stage_keyframes(session: AsyncSession, job_id: UUID, video: Video) ->
         metrics={
             "candidates": len(candidates),
             "extracted": len(rows),
+            "reused": reused,
             "per_minute": round(len(rows) / max((video.duration_s or 1) / 60, 1), 2),
             "wall_s": round(time.perf_counter() - started, 2),
         },
@@ -411,6 +459,25 @@ async def _stage_ocr(
         workers=settings.ocr_workers,
         progress=_throttled(job_id, name, loop),
     )
+
+    # Clear what these frames already hold before writing the new read.
+    #
+    # This stage only ever appended. It got away with it because the keyframes
+    # stage used to delete every frame first, which cascaded and took the old
+    # blocks with it — so a re-run happened to start clean. Making keyframes
+    # reconcile instead of replace (which it must, or a failed OCR run destroys
+    # existing text) removed that accident, and a second OCR pass began
+    # duplicating every block: measured at exactly 2.00x on a re-analysed clip.
+    #
+    # Duplicated blocks are not merely untidy. They are concatenated into
+    # `on_screen_text` and into the `kind=ocr` chunks, so every line reached
+    # search and the answer prompt twice over.
+    await session.execute(
+        OcrBlock.__table__.delete().where(
+            OcrBlock.keyframe_id.in_([k.id for k in keyframes])
+        )
+    )
+    await session.commit()
 
     by_path = {r.path: r for r in results}
     blocks: list[OcrBlock] = []
@@ -841,7 +908,11 @@ async def run_job(job_id: UUID) -> None:
                 if StageName.AUDIO_EXTRACT in wanted or not audio_path.exists():
                     audio_path = await _stage_audio(session, job_id, video)
                 if StageName.TRANSCRIBE in wanted:
-                    await _stage_transcribe(session, job_id, video, audio_path)
+                    await _stage_transcribe(
+                        session, job_id, video, audio_path,
+                        vad_filter=(job.options or {}).get("vad_filter"),
+                        vocabulary=(job.options or {}).get("vocabulary"),
+                    )
 
             # ─ Visual branch ─
             # Failures here are non-critical: a broken OCR stage must not discard

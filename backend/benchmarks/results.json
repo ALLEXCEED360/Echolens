@@ -1,7 +1,3009 @@
 {
   "n_questions": 46,
-  "elapsed_s": 10.9,
+  "elapsed_s": 19.6,
   "variants": {
+    "lexical": {
+      "summary": {
+        "variant": "lexical",
+        "n": 46,
+        "recall": {
+          "1": 0.2826086956521739,
+          "5": 0.6304347826086957,
+          "10": 0.782608695652174
+        },
+        "precision": {
+          "1": 0.2826086956521739,
+          "5": 0.21304347826086958,
+          "10": 0.15893719806763285
+        },
+        "mrr": 0.4264406487232574,
+        "ndcg_at_10": 0.5128800583359088,
+        "median_start_error_s": 0.0,
+        "start_error_n": 10,
+        "mean_span_width_s": 18.568634713144547,
+        "p50_ms": 5.937249999988126,
+        "p95_ms": 13.535000000501896,
+        "by_category": {
+          "conceptual": 0.4,
+          "generated": 0.6363636363636364,
+          "lexical": 0.75
+        }
+      },
+      "queries": [
+        {
+          "question_id": "q001",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 15.66850000017439,
+          "top_start_s": 4224.02,
+          "anchor_s": 407.0,
+          "span_widths": [
+            16.359999999999673,
+            19.840000000000146,
+            19.36,
+            18.079999999999984,
+            18.960000000000036,
+            16.68000000000029,
+            19.92,
+            15.840000000000146,
+            79.9,
+            19.599999999999994
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q002",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 6.98740000007092,
+          "top_start_s": 98.08,
+          "anchor_s": 891.1,
+          "span_widths": [
+            19.36,
+            79.9,
+            19.92,
+            18.399999999999977,
+            16.879999999999995,
+            21.28,
+            20.559999999999945,
+            16.40000000000009,
+            19.599999999999994,
+            18.799999999999997
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q003",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 9.112200000345183,
+          "top_start_s": 1844.9,
+          "anchor_s": 1844.9,
+          "span_widths": [
+            21.24000000000001,
+            17.26000000000022,
+            19.59999999999991,
+            16.720000000000255,
+            19.36,
+            17.0,
+            15.5,
+            79.9,
+            18.399999999999977,
+            19.720000000000255
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q004",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 3.7793000001329347,
+          "top_start_s": 2463.64,
+          "anchor_s": 2334.63,
+          "span_widths": [
+            21.90000000000009,
+            21.18000000000029,
+            18.720000000000255,
+            16.080000000000382,
+            15.159999999999854,
+            17.0,
+            18.040000000000873,
+            17.0,
+            16.159999999999854,
+            20.720000000001164
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q005",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 9.498299999904702,
+          "top_start_s": 98.08,
+          "anchor_s": 2816.11,
+          "span_widths": [
+            19.36,
+            16.879999999999995,
+            21.239999999997963,
+            21.679999999999836,
+            16.799999999999272,
+            19.160000000000764,
+            19.92,
+            21.460000000000946,
+            21.04000000000002,
+            20.30999999999949
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q006",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 4.445499999746971,
+          "top_start_s": 3282.68,
+          "anchor_s": 3299.54,
+          "span_widths": [
+            16.7800000000002,
+            14.440000000000055,
+            16.150000000001455,
+            17.19999999999891,
+            17.860000000000127,
+            17.600000000000364,
+            19.600000000000364,
+            16.400000000001455,
+            15.300000000001091
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q007",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 5.290699999932258,
+          "top_start_s": 3656.47,
+          "anchor_s": 3648.31,
+          "span_widths": [
+            18.420000000000073,
+            15.179999999999836,
+            16.38000000000011,
+            16.159999999999854,
+            18.199999999999818,
+            15.159999999999854,
+            16.639999999999873,
+            18.800000000000182,
+            16.360000000000127,
+            17.020000000000437
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q008",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 6.048299999747542,
+          "top_start_s": 2816.11,
+          "anchor_s": 4131.81,
+          "span_widths": [
+            21.679999999999836,
+            19.36,
+            19.7400000000016,
+            19.31999999999971,
+            18.399999999999977,
+            19.92,
+            16.879999999999995,
+            21.04000000000002,
+            19.079999999999927,
+            79.9
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q009",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 5.542500000046857,
+          "top_start_s": 4633.21,
+          "anchor_s": 4633.21,
+          "span_widths": [
+            17.640000000000327,
+            16.01000000000022,
+            21.0,
+            21.44000000000051,
+            17.309999999999945,
+            15.1200000000008,
+            17.56000000000131,
+            17.0,
+            15.319999999999709,
+            18.020000000000437
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q010",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 6.821899999522429,
+          "top_start_s": 110.48,
+          "anchor_s": 5497.92,
+          "span_widths": [
+            16.879999999999995,
+            19.36,
+            12.760000000000218,
+            14.479999999999563,
+            17.220000000001164,
+            18.600000000002183,
+            20.480000000000004,
+            5.5,
+            11.0,
+            21.279999999999745
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q011",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 5.100899999888497,
+          "top_start_s": 5915.11,
+          "anchor_s": 5915.11,
+          "span_widths": [
+            16.32000000000062,
+            15.479999999999563,
+            17.399999999999636,
+            16.520000000000437,
+            15.399999999999636,
+            19.55999999999949,
+            18.76000000000022,
+            16.560000000000002,
+            21.770000000000437,
+            20.1200000000008
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q012",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 5.714099999750033,
+          "top_start_s": 9074.62,
+          "anchor_s": 6390.62,
+          "span_widths": [
+            21.269999999998618,
+            16.480000000001382,
+            17.340000000000146,
+            17.039999999999054,
+            18.200000000000728,
+            18.640000000001237,
+            17.6200000000008,
+            15.840000000000146,
+            16.399999999999636,
+            14.520000000000437
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q013",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 4.581600000165054,
+          "top_start_s": 7245.29,
+          "anchor_s": 6838.33,
+          "span_widths": [
+            15.590000000000146,
+            16.48999999999978,
+            14.199999999999818,
+            21.280000000000655,
+            12.4399999999996,
+            15.399999999999636,
+            17.01000000000022,
+            15.44000000000051,
+            16.840000000000146,
+            17.600000000000364
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q014",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 11.739900000065973,
+          "top_start_s": 7979.11,
+          "anchor_s": 7674.7,
+          "span_widths": [
+            18.039999999999964,
+            17.640000000000327,
+            19.04000000000019,
+            21.83999999999969,
+            19.44000000000051,
+            19.639999999999418,
+            20.020000000000437,
+            15.839999999999236,
+            17.039999999999054,
+            21.91999999999996
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q016",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 9.407900000041991,
+          "top_start_s": 12955.2,
+          "anchor_s": 9411.81,
+          "span_widths": [
+            21.399999999999636,
+            18.600000000000364,
+            15.540000000000418,
+            15.399999999999636,
+            20.519999999999982,
+            17.039999999999054,
+            20.479999999999563,
+            16.44000000000051,
+            21.0,
+            17.11999999999989
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q017",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 4.986699999790289,
+          "top_start_s": 2738.39,
+          "anchor_s": 10265.09,
+          "span_widths": [
+            21.18000000000029,
+            18.720000000000255,
+            16.579999999999927,
+            19.639999999999873,
+            18.040000000000873,
+            19.11999999999989,
+            20.7199999999998,
+            16.080000000000382,
+            19.659999999999854,
+            20.26000000000022
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q018",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 7.329299999582872,
+          "top_start_s": 10695.43,
+          "anchor_s": 10695.43,
+          "span_widths": [
+            15.520000000000437,
+            15.799999999999272,
+            20.19999999999891,
+            16.799999999999272,
+            15.100000000000364,
+            21.0,
+            19.960000000000946,
+            18.709999999999127,
+            18.840000000000146,
+            20.98999999999978
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q019",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 4.949300000589574,
+          "top_start_s": 20902.71,
+          "anchor_s": 11616.31,
+          "span_widths": [
+            17.44000000000233,
+            15.840000000000146,
+            17.06999999999971,
+            19.88000000000011,
+            17.31999999999971,
+            21.599999999998545,
+            33.0,
+            17.80000000000109,
+            17.600000000000364,
+            9.360000000000127
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q020",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 4.404300000715011,
+          "top_start_s": 12010.22,
+          "anchor_s": 12010.22,
+          "span_widths": [
+            17.0,
+            18.600000000000364,
+            19.900000000001455,
+            16.299999999999272,
+            16.56999999999971,
+            18.600000000000364,
+            18.479999999999563,
+            18.399999999999636,
+            21.0,
+            16.399999999999636
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q021",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 11.547000000064145,
+          "top_start_s": 2789.25,
+          "anchor_s": 12450.16,
+          "span_widths": [
+            19.88000000000011,
+            9.360000000000127,
+            15.400000000000091,
+            21.04000000000002,
+            19.900000000001455,
+            17.840000000000146,
+            21.11999999999898,
+            16.399999999997817,
+            16.600000000000364,
+            20.19999999999891
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q022",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 5.2752999999938766,
+          "top_start_s": 12010.22,
+          "anchor_s": 12955.2,
+          "span_widths": [
+            17.0,
+            21.399999999999636,
+            19.900000000001455,
+            18.0,
+            18.479999999999563,
+            18.600000000000364,
+            21.0,
+            16.299999999999272,
+            15.55999999999949,
+            21.399999999999636
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q023",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 9.138899999925343,
+          "top_start_s": 13304.28,
+          "anchor_s": 13481.04,
+          "span_widths": [
+            20.399999999999636,
+            20.8799999999992,
+            19.960000000000946,
+            15.799999999999272,
+            19.839999999998327,
+            15.0,
+            16.799999999999272,
+            15.100000000000364,
+            16.159999999999854,
+            16.600000000000364
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q024",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 5.718899999919813,
+          "top_start_s": 14344.26,
+          "anchor_s": 14299.1,
+          "span_widths": [
+            16.8799999999992,
+            15.720000000001164,
+            18.920000000000073,
+            17.40000000000009,
+            18.600000000002183,
+            15.159999999999854,
+            21.68000000000029,
+            17.220000000001164,
+            18.8799999999992,
+            17.07999999999811
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q025",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 3.634799999417737,
+          "top_start_s": 5740.84,
+          "anchor_s": 14628.84,
+          "span_widths": [
+            15.359999999999673,
+            21.189999999999827,
+            16.920000000000073,
+            21.80000000000109,
+            21.310000000000173,
+            17.600000000000364,
+            16.98999999999978,
+            15.160000000000764,
+            14.280000000000655,
+            16.520000000000437
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q026",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 13.572800000474672,
+          "top_start_s": 6053.17,
+          "anchor_s": 15641.04,
+          "span_widths": [
+            20.23999999999978,
+            18.519999999999982,
+            19.159999999999854,
+            17.920000000000073,
+            15.440000000000055,
+            19.920000000000073,
+            15.479999999999563,
+            20.1200000000008,
+            16.31999999999971,
+            20.0
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q028",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 2.826400000230933,
+          "top_start_s": 16795.56,
+          "anchor_s": 16561.76,
+          "span_widths": [
+            15.959999999999127,
+            17.520000000000437,
+            19.55999999999767,
+            19.68000000000029,
+            14.650000000001455,
+            15.239999999997963,
+            18.159999999999854,
+            20.080000000001746,
+            17.0,
+            15.600000000002183
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q029",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 5.177900000489899,
+          "top_start_s": 831.49,
+          "anchor_s": 16967.92,
+          "span_widths": [
+            21.360000000000014,
+            17.94000000000233,
+            21.120000000000005,
+            14.159999999999968,
+            20.95999999999998,
+            11.0,
+            16.720000000001164,
+            16.159999999999854,
+            17.0,
+            18.090000000000146
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q032",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 10.40850000026694,
+          "top_start_s": 18465.07,
+          "anchor_s": 18465.07,
+          "span_widths": [
+            15.319999999999709,
+            19.55999999999949,
+            17.56000000000131,
+            17.600000000000364,
+            19.639999999999418,
+            19.11999999999989,
+            16.159999999999854,
+            15.680000000000291,
+            20.760000000002037,
+            16.7800000000002
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q033",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 9.717099999761558,
+          "top_start_s": 19269.0,
+          "anchor_s": 19269.0,
+          "span_widths": [
+            18.400000000001455,
+            19.840000000000146,
+            16.19999999999891,
+            19.04000000000019,
+            16.399999999999636,
+            17.640000000000327,
+            14.759999999999991,
+            17.43000000000029,
+            15.719999999997526,
+            16.59999999999991
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q034",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 5.8262000002287095,
+          "top_start_s": 19672.34,
+          "anchor_s": 19672.34,
+          "span_widths": [
+            15.079999999998108,
+            17.959999999999127,
+            16.400000000001455,
+            17.06999999999971,
+            21.030000000002474,
+            17.040000000000873,
+            18.840000000000146,
+            15.610000000000582,
+            16.18999999999869,
+            17.44000000000233
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q035",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 7.359199999882549,
+          "top_start_s": 852.85,
+          "anchor_s": 20187.27,
+          "span_widths": [
+            20.25,
+            18.37000000000262,
+            20.30999999999949,
+            19.31999999999971,
+            20.829999999999927,
+            19.079999999999927,
+            17.43999999999869,
+            19.849999999999454,
+            17.279999999998836,
+            16.55999999999949
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q036",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 10.653299999830779,
+          "top_start_s": 20677.98,
+          "anchor_s": 20677.98,
+          "span_widths": [
+            15.279999999998836,
+            21.729999999999563,
+            18.600000000002183,
+            17.220000000001164,
+            18.989999999997963,
+            19.55999999999949,
+            18.700000000000728,
+            16.840000000000146,
+            15.7599999999984,
+            18.539999999999054
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q037",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 17.350400000395894,
+          "top_start_s": 12287.14,
+          "anchor_s": 21128.64,
+          "span_widths": [
+            19.659999999999854,
+            16.31999999999971,
+            15.799999999999272,
+            15.100000000000364,
+            18.960000000000036,
+            15.680000000000291,
+            20.479999999999563,
+            16.139999999999418,
+            20.760000000002037,
+            20.5600000000004
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi001",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 3.2799999999042484,
+          "top_start_s": 11369.72,
+          "anchor_s": null,
+          "span_widths": [
+            14.0,
+            15.0,
+            17.600000000000364,
+            19.200000000000728,
+            17.399999999999636,
+            10.0,
+            17.80000000000109,
+            15.399999999999636,
+            16.399999999999636,
+            18.799999999999272
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi002",
+          "category": "lexical",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 8.937300000070536,
+          "top_start_s": 12367.6,
+          "anchor_s": null,
+          "span_widths": [
+            15.799999999999272,
+            16.799999999999272,
+            19.079999999999927,
+            20.19999999999891,
+            15.100000000000364,
+            20.98999999999978,
+            16.399999999997817,
+            15.399999999999636,
+            20.399999999999636,
+            19.960000000000946
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi003",
+          "category": "lexical",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 3.063799999836192,
+          "top_start_s": 20240.0,
+          "anchor_s": null,
+          "span_widths": [
+            5.5,
+            9.33333333333303,
+            33.0,
+            6.16666666666606,
+            27.5,
+            16.5,
+            11.0,
+            16.5,
+            22.0,
+            6.533333333332848
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi004",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 3.2797000003483845,
+          "top_start_s": 7562.22,
+          "anchor_s": null,
+          "span_widths": [
+            17.039999999999964,
+            19.36,
+            16.879999999999995,
+            79.9,
+            18.399999999999977,
+            19.92,
+            18.799999999999997,
+            20.559999999999945,
+            19.599999999999994,
+            21.28
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi005",
+          "category": "lexical",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 3.604500000619737,
+          "top_start_s": 4575.44,
+          "anchor_s": null,
+          "span_widths": [
+            16.080000000000837,
+            19.55999999999949,
+            17.920000000000073,
+            15.55999999999949,
+            15.399999999999636,
+            15.039999999999964,
+            15.760000000000218,
+            21.399999999999636,
+            17.279999999998836,
+            21.399999999999636
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi006",
+          "category": "lexical",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 3.438599999753933,
+          "top_start_s": 17141.94,
+          "anchor_s": null,
+          "span_widths": [
+            17.280000000002474,
+            16.159999999999854,
+            20.75,
+            16.42000000000189,
+            16.63000000000102,
+            15.520000000000437,
+            17.05999999999949,
+            15.840000000000146,
+            18.8799999999992,
+            15.840000000000146
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi007",
+          "category": "lexical",
+          "relevance": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 5.315800000062154,
+          "top_start_s": 16714.25,
+          "anchor_s": null,
+          "span_widths": [
+            15.639999999999418,
+            16.909999999999854,
+            18.06999999999971,
+            17.159999999999854,
+            16.43999999999869,
+            18.559999999999945,
+            13.200000000000728,
+            21.44000000000051,
+            15.759999999999991,
+            20.88000000000102
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi008",
+          "category": "lexical",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 3.5642000002553686,
+          "top_start_s": 20746.0,
+          "anchor_s": null,
+          "span_widths": [
+            17.040000000000873,
+            16.0,
+            16.840000000000146,
+            20.109999999996944,
+            16.7599999999984,
+            17.220000000001164,
+            18.92000000000189,
+            16.720000000001164,
+            18.989999999997963,
+            18.600000000002183
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc001",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 8.495400000356312,
+          "top_start_s": 6450.4,
+          "anchor_s": null,
+          "span_widths": [
+            16.039999999999964,
+            17.079999999999927,
+            13.980000000000018,
+            18.600000000002183,
+            17.220000000001164,
+            22.0,
+            18.519999999999982,
+            18.879999999999995,
+            19.01000000000022,
+            21.519999999999982
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc002",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 12.439400000403111,
+          "top_start_s": 19494.6,
+          "anchor_s": null,
+          "span_widths": [
+            17.94000000000233,
+            17.840000000000146,
+            21.11999999999898,
+            17.079999999999927,
+            20.960000000000036,
+            18.159999999999854,
+            17.100000000000364,
+            18.519999999999982,
+            17.88000000000011,
+            19.23999999999978
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc003",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 8.691199999702803,
+          "top_start_s": 8032.11,
+          "anchor_s": null,
+          "span_widths": [
+            19.44000000000051,
+            20.279999999999745,
+            19.48999999999978,
+            19.23999999999978,
+            18.23999999999978,
+            15.399999999999636,
+            21.44000000000051,
+            17.039999999999964,
+            19.299999999999272,
+            18.959999999999923
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc004",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 13.421600000583567,
+          "top_start_s": 4497.83,
+          "anchor_s": null,
+          "span_widths": [
+            17.279999999999745,
+            21.460000000000946,
+            17.7599999999984,
+            20.799999999999272,
+            16.960000000000036,
+            16.799999999999272,
+            21.83999999999969,
+            16.31999999999971,
+            16.30999999999949,
+            19.079999999999927
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc005",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 12.970599999789556,
+          "top_start_s": 12287.14,
+          "anchor_s": null,
+          "span_widths": [
+            19.659999999999854,
+            15.799999999999272,
+            16.31999999999971,
+            16.799999999999272,
+            15.100000000000364,
+            20.19999999999891,
+            18.709999999999127,
+            18.719999999999345,
+            20.399999999999636,
+            16.399999999999636
+          ],
+          "top_score": null
+        }
+      ]
+    },
+    "semantic": {
+      "summary": {
+        "variant": "semantic",
+        "n": 46,
+        "recall": {
+          "1": 0.6739130434782609,
+          "5": 0.9130434782608695,
+          "10": 0.9347826086956522
+        },
+        "precision": {
+          "1": 0.6739130434782609,
+          "5": 0.35652173913043483,
+          "10": 0.25
+        },
+        "mrr": 0.7802795031055901,
+        "ndcg_at_10": 0.7438247831388282,
+        "median_start_error_s": 0.0,
+        "start_error_n": 24,
+        "mean_span_width_s": 17.404246376811646,
+        "p50_ms": 51.855450000402925,
+        "p95_ms": 55.59687500021937,
+        "by_category": {
+          "conceptual": 0.8,
+          "generated": 0.9393939393939394,
+          "lexical": 0.875
+        }
+      },
+      "queries": [
+        {
+          "question_id": "q001",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true,
+            true,
+            false
+          ],
+          "latency_ms": 56.879200000366836,
+          "top_start_s": 407.0,
+          "anchor_s": 407.0,
+          "span_widths": [
+            11.0,
+            18.159999999999854,
+            15.519999999999527,
+            18.379999999999654,
+            15.640000000000327,
+            20.960000000000036,
+            9.566666666666663,
+            4.133333333333326,
+            4.433333333333337,
+            17.23999999999978
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q002",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.75520000011602,
+          "top_start_s": 5383.16,
+          "anchor_s": 891.1,
+          "span_widths": [
+            16.390000000000327,
+            20.100000000000023,
+            16.59999999999991,
+            15.299999999999272,
+            16.7800000000002,
+            18.520000000000437,
+            16.92000000000189,
+            21.24000000000001,
+            21.74000000000001,
+            18.920000000000073
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q003",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.09949999971286,
+          "top_start_s": 1844.9,
+          "anchor_s": 1844.9,
+          "span_widths": [
+            21.24000000000001,
+            19.59999999999991,
+            15.920000000000073,
+            20.040000000000873,
+            21.51000000000022,
+            22.0,
+            15.640000000003056,
+            16.479999999999563,
+            17.26000000000022,
+            16.230000000000018
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q004",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true
+          ],
+          "latency_ms": 51.46260000037728,
+          "top_start_s": 6567.21,
+          "anchor_s": 2334.63,
+          "span_widths": [
+            16.960000000000036,
+            15.159999999999854,
+            16.159999999999854,
+            21.18000000000029,
+            18.51000000000022,
+            16.519999999999982,
+            19.639999999999873,
+            17.039999999999964,
+            17.0,
+            19.5
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q005",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 54.732599999624654,
+          "top_start_s": 2857.76,
+          "anchor_s": 2816.11,
+          "span_widths": [
+            18.359999999999673,
+            21.679999999999836,
+            18.820000000000164,
+            15.460000000000036,
+            27.5,
+            16.799999999999272,
+            21.04000000000002,
+            4.433333333333337,
+            4.133333333333326,
+            20.610000000000127
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q006",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 50.160600000708655,
+          "top_start_s": 3299.54,
+          "anchor_s": 3299.54,
+          "span_widths": [
+            17.860000000000127,
+            14.440000000000055,
+            16.909999999999854,
+            16.7800000000002,
+            15.300000000001091,
+            19.0,
+            17.19999999999891,
+            16.150000000001455,
+            17.0,
+            15.039999999999964
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q007",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true,
+            false
+          ],
+          "latency_ms": 52.86179999984597,
+          "top_start_s": 3656.47,
+          "anchor_s": 3648.31,
+          "span_widths": [
+            18.420000000000073,
+            15.179999999999836,
+            18.199999999999818,
+            16.38000000000011,
+            18.800000000000182,
+            17.020000000000437,
+            15.720000000001164,
+            15.759999999999764,
+            16.639999999999873,
+            16.159999999999854
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q008",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 50.10050000055344,
+          "top_start_s": 4131.81,
+          "anchor_s": 4131.81,
+          "span_widths": [
+            19.849999999999454,
+            16.080000000000837,
+            20.579999999999927,
+            19.88000000000011,
+            16.68000000000029,
+            17.079999999999927,
+            11.360000000000127,
+            9.279999999999973,
+            20.970000000000255,
+            19.7400000000016
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q009",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 48.06379999990895,
+          "top_start_s": 4633.21,
+          "anchor_s": 4633.21,
+          "span_widths": [
+            17.640000000000327,
+            18.88000000000102,
+            15.239999999999782,
+            11.800000000000182,
+            15.039999999999964,
+            16.01000000000022,
+            15.0,
+            13.639999999999418,
+            16.909999999999854,
+            13.600000000000364
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q010",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 52.45250000007218,
+          "top_start_s": 5488.92,
+          "anchor_s": 5497.92,
+          "span_widths": [
+            12.760000000000218,
+            13.8799999999992,
+            20.770000000000437,
+            16.4399999999996,
+            21.279999999999745,
+            18.280000000000655,
+            14.479999999999563,
+            11.0,
+            5.5,
+            20.279999999998836
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q011",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.4725000002727,
+          "top_start_s": 5915.11,
+          "anchor_s": 5915.11,
+          "span_widths": [
+            16.32000000000062,
+            15.479999999999563,
+            19.55999999999949,
+            18.76000000000022,
+            17.399999999999636,
+            15.399999999999636,
+            21.0,
+            15.280000000000655,
+            17.2400000000016,
+            18.200000000000728
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q012",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.19830000078218,
+          "top_start_s": 6390.62,
+          "anchor_s": 6390.62,
+          "span_widths": [
+            17.340000000000146,
+            18.640000000001237,
+            18.200000000000728,
+            18.799999999999272,
+            16.599999999999454,
+            17.280000000000655,
+            17.039999999999054,
+            17.6200000000008,
+            16.400000000001455,
+            20.31999999999971
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q013",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.16039999959321,
+          "top_start_s": 6829.65,
+          "anchor_s": 6838.33,
+          "span_widths": [
+            15.680000000000291,
+            15.44000000000051,
+            16.48999999999978,
+            15.720000000000255,
+            16.840000000000146,
+            17.01000000000022,
+            13.640000000000327,
+            20.360000000000582,
+            18.24000000000069,
+            15.069999999999709
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q014",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.449999999931606,
+          "top_start_s": 7970.47,
+          "anchor_s": 7674.7,
+          "span_widths": [
+            12.679999999999382,
+            18.039999999999964,
+            20.020000000000437,
+            15.839999999999236,
+            18.050000000000182,
+            17.32000000000062,
+            17.399999999999636,
+            17.039999999999964,
+            5.5,
+            11.0
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q016",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 48.676099999283906,
+          "top_start_s": 9494.13,
+          "anchor_s": 9411.81,
+          "span_widths": [
+            15.590000000000146,
+            19.529999999998836,
+            17.799999999999272,
+            20.600000000000364,
+            18.43999999999869,
+            19.55999999999949,
+            18.799999999999272,
+            18.8799999999992,
+            17.0,
+            15.360000000000582
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q017",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.591800000096555,
+          "top_start_s": 10251.05,
+          "anchor_s": 10265.09,
+          "span_widths": [
+            18.1200000000008,
+            15.770000000000437,
+            15.360000000000582,
+            16.579999999999927,
+            19.920000000000073,
+            19.359999999998763,
+            19.639999999999873,
+            16.23999999999978,
+            20.73999999999978,
+            18.639999999999873
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q018",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.5446000001466,
+          "top_start_s": 10695.43,
+          "anchor_s": 10695.43,
+          "span_widths": [
+            15.520000000000437,
+            18.639999999999418,
+            15.680000000000291,
+            16.359999999998763,
+            19.520000000000437,
+            15.880000000001019,
+            21.68000000000029,
+            20.279999999998836,
+            16.42000000000189,
+            24.899999999999636
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q019",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.69370000021445,
+          "top_start_s": 20902.71,
+          "anchor_s": 11616.31,
+          "span_widths": [
+            17.44000000000233,
+            18.340000000000146,
+            19.0,
+            9.030000000000655,
+            19.68000000000029,
+            17.31999999999971,
+            19.700000000000728,
+            17.80000000000109,
+            15.600000000000364,
+            16.799999999999272
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q020",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 51.82870000044204,
+          "top_start_s": 12010.22,
+          "anchor_s": 12010.22,
+          "span_widths": [
+            17.0,
+            15.399999999999636,
+            16.299999999999272,
+            18.600000000000364,
+            16.56999999999971,
+            13.799999999999272,
+            18.399999999999636,
+            17.599999999998545,
+            17.159999999999854,
+            19.900000000001455
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q021",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 55.487300000095274,
+          "top_start_s": 15649.64,
+          "anchor_s": 12450.16,
+          "span_widths": [
+            15.1200000000008,
+            16.600000000000364,
+            16.19999999999891,
+            19.900000000001455,
+            19.529999999998836,
+            15.7599999999984,
+            19.659999999999854,
+            19.88000000000011,
+            16.799999999999272,
+            20.149999999999636
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q022",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 49.930599999242986,
+          "top_start_s": 12930.2,
+          "anchor_s": 12955.2,
+          "span_widths": [
+            18.0,
+            21.399999999999636,
+            13.799999999999272,
+            21.399999999999636,
+            34.066666666667516,
+            17.159999999999854,
+            21.0,
+            16.399999999999636,
+            17.599999999998545,
+            16.80000000000109
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q023",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 50.68349999964994,
+          "top_start_s": 13304.28,
+          "anchor_s": 13481.04,
+          "span_widths": [
+            20.399999999999636,
+            17.539999999999054,
+            13.639999999999418,
+            19.839999999998327,
+            16.600000000000364,
+            13.600000000000364,
+            15.239999999999782,
+            17.020000000000437,
+            43.13333333333503,
+            19.68000000000029
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q024",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 51.656000000548374,
+          "top_start_s": 14299.1,
+          "anchor_s": 14299.1,
+          "span_widths": [
+            21.68000000000029,
+            16.8799999999992,
+            15.680000000000291,
+            18.8799999999992,
+            33.0,
+            17.600000000000364,
+            19.080000000001746,
+            17.07999999999811,
+            15.360000000000582,
+            15.159999999999854
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q025",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 52.02670000016951,
+          "top_start_s": 14628.84,
+          "anchor_s": 14628.84,
+          "span_widths": [
+            16.920000000000073,
+            13.239999999999782,
+            14.280000000000655,
+            19.520000000000437,
+            15.359999999999673,
+            17.800000000000182,
+            17.55999999999949,
+            16.98999999999978,
+            21.11999999999898,
+            18.3700000000008
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q026",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.046199999495,
+          "top_start_s": 9279.48,
+          "anchor_s": 15641.04,
+          "span_widths": [
+            16.960000000000946,
+            14.0,
+            15.1200000000008,
+            17.039999999999054,
+            19.5,
+            18.719999999999345,
+            18.76000000000022,
+            20.479999999999563,
+            18.909999999999854,
+            17.200000000000728
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q028",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.946599999610044,
+          "top_start_s": 16561.76,
+          "anchor_s": 16561.76,
+          "span_widths": [
+            19.68000000000029,
+            15.239999999997963,
+            18.159999999999854,
+            14.650000000001455,
+            20.080000000001746,
+            19.55999999999767,
+            15.969999999997526,
+            17.11999999999898,
+            17.520000000000437,
+            15.600000000002183
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q029",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 55.633400000260735,
+          "top_start_s": 16967.92,
+          "anchor_s": 16967.92,
+          "span_widths": [
+            17.0,
+            15.0099999999984,
+            17.94000000000233,
+            16.63000000000102,
+            16.0,
+            17.770000000000437,
+            21.360000000000014,
+            16.080000000001746,
+            16.270000000000437,
+            20.75
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q032",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 48.92050000034942,
+          "top_start_s": 18465.07,
+          "anchor_s": 18465.07,
+          "span_widths": [
+            15.319999999999709,
+            17.600000000000364,
+            15.059999999999945,
+            17.56000000000131,
+            14.5,
+            19.040000000000873,
+            17.039999999999054,
+            17.970000000001164,
+            15.1200000000008,
+            20.149999999999636
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q033",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.76350000056118,
+          "top_start_s": 19269.0,
+          "anchor_s": 19269.0,
+          "span_widths": [
+            18.400000000001455,
+            19.840000000000146,
+            14.759999999999991,
+            16.399999999999636,
+            17.43000000000029,
+            16.279999999998836,
+            19.04000000000019,
+            17.2400000000016,
+            18.24000000000069,
+            13.319999999999709
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q034",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.25970000062807,
+          "top_start_s": 19659.5,
+          "anchor_s": 19672.34,
+          "span_widths": [
+            16.400000000001455,
+            15.079999999998108,
+            17.31999999999971,
+            18.840000000000146,
+            17.959999999999127,
+            11.640000000003056,
+            21.030000000002474,
+            17.340000000000146,
+            17.92000000000189,
+            49.5
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q035",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 48.465600000781706,
+          "top_start_s": 4131.81,
+          "anchor_s": 20187.27,
+          "span_widths": [
+            19.849999999999454,
+            15.590000000000146,
+            17.43999999999869,
+            20.30999999999949,
+            14.040000000000873,
+            19.529999999998836,
+            20.25,
+            20.610000000000127,
+            19.31999999999971,
+            18.43999999999869
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q036",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 52.264199999626726,
+          "top_start_s": 20682.46,
+          "anchor_s": 20677.98,
+          "span_widths": [
+            21.729999999999563,
+            15.279999999998836,
+            18.600000000002183,
+            17.220000000001164,
+            18.700000000000728,
+            20.51000000000022,
+            16.450000000000728,
+            11.119999999998981,
+            19.080000000001746,
+            17.159999999999854
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "q037",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.682399999663176,
+          "top_start_s": 21154.46,
+          "anchor_s": 21128.64,
+          "span_widths": [
+            18.31999999999971,
+            16.139999999999418,
+            18.600000000002183,
+            11.639999999999418,
+            17.489999999997963,
+            15.44000000000051,
+            20.23999999999978,
+            17.43999999999869,
+            15.119999999998981,
+            13.640000000000327
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi001",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 51.899399999456364,
+          "top_start_s": 11300.92,
+          "anchor_s": null,
+          "span_widths": [
+            18.799999999999272,
+            15.0,
+            17.600000000000364,
+            17.06999999999971,
+            15.399999999999636,
+            14.0,
+            17.399999999999636,
+            19.200000000000728,
+            17.44000000000233,
+            19.0
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi002",
+          "category": "lexical",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.265299999817216,
+          "top_start_s": 20916.39,
+          "anchor_s": null,
+          "span_widths": [
+            20.279999999998836,
+            18.88000000000102,
+            18.840000000000146,
+            15.880000000001019,
+            29.5,
+            18.969999999997526,
+            17.159999999999854,
+            20.760000000002037,
+            17.56000000000131,
+            17.30999999999949
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi003",
+          "category": "lexical",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 53.70839999977761,
+          "top_start_s": 7688.86,
+          "anchor_s": null,
+          "span_widths": [
+            16.61999999999989,
+            16.30999999999949,
+            15.279999999998836,
+            18.959999999999127,
+            17.5199999999968,
+            19.520000000000437,
+            15.479999999999563,
+            17.600000000000364,
+            15.720000000001164,
+            19.68000000000029
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi004",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 50.30570000053558,
+          "top_start_s": 7437.13,
+          "anchor_s": null,
+          "span_widths": [
+            17.519999999999527,
+            6.333333333333485,
+            15.4399999999996,
+            19.23999999999978,
+            21.88000000000011,
+            17.039999999999964,
+            5.5,
+            17.32000000000062,
+            18.279999999999973,
+            16.799999999999272
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi005",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 53.50129999987985,
+          "top_start_s": 2947.36,
+          "anchor_s": null,
+          "span_widths": [
+            17.920000000000073,
+            20.519999999999982,
+            16.7800000000002,
+            16.559999999999945,
+            17.31999999999971,
+            8.0,
+            15.5099999999984,
+            17.279999999998836,
+            15.760000000000218,
+            15.56000000000131
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi006",
+          "category": "lexical",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 50.969899999472545,
+          "top_start_s": 17357.21,
+          "anchor_s": null,
+          "span_widths": [
+            20.75,
+            16.42000000000189,
+            16.159999999999854,
+            17.05999999999949,
+            19.039999999999054,
+            16.23999999999978,
+            17.280000000002474,
+            18.840000000000032,
+            15.0,
+            15.600000000002183
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi007",
+          "category": "lexical",
+          "relevance": [
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.219899999727204,
+          "top_start_s": 8894.73,
+          "anchor_s": null,
+          "span_widths": [
+            16.909999999999854,
+            18.06999999999971,
+            18.559999999999945,
+            15.710000000000946,
+            11.0,
+            11.0,
+            15.200000000000045,
+            13.200000000000728,
+            15.759999999999991,
+            16.31999999999971
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "lexi008",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.38119999992341,
+          "top_start_s": 19363.28,
+          "anchor_s": null,
+          "span_widths": [
+            16.0,
+            17.040000000000873,
+            13.720000000001164,
+            16.7599999999984,
+            16.799999999999272,
+            10.419999999998254,
+            18.220000000001164,
+            16.199999999999818,
+            16.450000000000728,
+            17.94000000000233
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc001",
+          "category": "conceptual",
+          "relevance": [
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 55.66319999979896,
+          "top_start_s": 3122.98,
+          "anchor_s": null,
+          "span_widths": [
+            18.519999999999982,
+            13.980000000000018,
+            21.270000000000437,
+            22.0,
+            17.640000000000327,
+            17.639999999999418,
+            15.1200000000008,
+            21.519999999999982,
+            17.200000000000273,
+            20.640000000000327
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc002",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 51.744200000030105,
+          "top_start_s": 1406.69,
+          "anchor_s": null,
+          "span_widths": [
+            21.679999999999836,
+            17.280000000002474,
+            15.600000000002183,
+            17.32000000000062,
+            20.400000000001455,
+            20.549999999999272,
+            16.0,
+            19.19999999999891,
+            18.18999999999869,
+            15.0099999999984
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc003",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 52.12070000015956,
+          "top_start_s": 10545.5,
+          "anchor_s": null,
+          "span_widths": [
+            17.600000000000364,
+            18.51000000000022,
+            15.8799999999992,
+            21.44000000000051,
+            17.039999999999964,
+            22.0,
+            15.839999999999236,
+            19.44000000000051,
+            19.23999999999978,
+            16.8799999999992
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc004",
+          "category": "conceptual",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.92520000036893,
+          "top_start_s": 4659.85,
+          "anchor_s": null,
+          "span_widths": [
+            15.479999999999563,
+            16.30999999999949,
+            16.720000000000255,
+            15.720000000000255,
+            17.720000000000255,
+            17.76000000000022,
+            20.720000000001164,
+            17.7599999999984,
+            19.079999999999927,
+            16.61999999999989
+          ],
+          "top_score": null
+        },
+        {
+          "question_id": "conc005",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 51.88220000036381,
+          "top_start_s": 12124.44,
+          "anchor_s": null,
+          "span_widths": [
+            17.69999999999891,
+            19.859999999998763,
+            24.899999999999636,
+            15.299999999999272,
+            19.30999999999949,
+            19.5,
+            17.639999999999418,
+            15.400000000001455,
+            20.279999999998836,
+            21.0
+          ],
+          "top_score": null
+        }
+      ]
+    },
     "hybrid": {
       "summary": {
         "variant": "hybrid",
@@ -21,8 +3023,8 @@
         "median_start_error_s": 0.0,
         "start_error_n": 26,
         "mean_span_width_s": 17.42528985507246,
-        "p50_ms": 56.30324999947334,
-        "p95_ms": 65.527950001524,
+        "p50_ms": 56.66505000044708,
+        "p95_ms": 64.29227500007073,
         "by_category": {
           "conceptual": 0.8,
           "generated": 0.9696969696969697,
@@ -45,7 +3047,7 @@
             false,
             false
           ],
-          "latency_ms": 71.05860000228859,
+          "latency_ms": 58.38000000039756,
           "top_start_s": 407.0,
           "anchor_s": 407.0,
           "span_widths": [
@@ -77,7 +3079,7 @@
             false,
             false
           ],
-          "latency_ms": 56.442900000547525,
+          "latency_ms": 53.7490999995498,
           "top_start_s": 903.74,
           "anchor_s": 891.1,
           "span_widths": [
@@ -109,7 +3111,7 @@
             false,
             false
           ],
-          "latency_ms": 61.94800000230316,
+          "latency_ms": 58.244400000148744,
           "top_start_s": 1844.9,
           "anchor_s": 1844.9,
           "span_widths": [
@@ -141,7 +3143,7 @@
             false,
             true
           ],
-          "latency_ms": 53.23570000109612,
+          "latency_ms": 52.71050000010291,
           "top_start_s": 2334.63,
           "anchor_s": 2334.63,
           "span_widths": [
@@ -173,7 +3175,7 @@
             false,
             false
           ],
-          "latency_ms": 56.646000000910135,
+          "latency_ms": 56.557599999905506,
           "top_start_s": 2816.11,
           "anchor_s": 2816.11,
           "span_widths": [
@@ -205,7 +3207,7 @@
             false,
             false
           ],
-          "latency_ms": 55.02809999961755,
+          "latency_ms": 51.10349999995378,
           "top_start_s": 3299.54,
           "anchor_s": 3299.54,
           "span_widths": [
@@ -237,7 +3239,7 @@
             true,
             false
           ],
-          "latency_ms": 53.024199998617405,
+          "latency_ms": 58.13659999967058,
           "top_start_s": 3656.47,
           "anchor_s": 3648.31,
           "span_widths": [
@@ -269,7 +3271,7 @@
             true,
             false
           ],
-          "latency_ms": 58.32369999916409,
+          "latency_ms": 56.74780000026658,
           "top_start_s": 4131.81,
           "anchor_s": 4131.81,
           "span_widths": [
@@ -301,7 +3303,7 @@
             false,
             false
           ],
-          "latency_ms": 55.19979999735369,
+          "latency_ms": 57.35660000027565,
           "top_start_s": 4633.21,
           "anchor_s": 4633.21,
           "span_widths": [
@@ -333,7 +3335,7 @@
             false,
             false
           ],
-          "latency_ms": 54.94229999749223,
+          "latency_ms": 54.15580000044429,
           "top_start_s": 5488.92,
           "anchor_s": 5497.92,
           "span_widths": [
@@ -365,7 +3367,7 @@
             false,
             false
           ],
-          "latency_ms": 55.53900000086287,
+          "latency_ms": 54.08960000022489,
           "top_start_s": 5915.11,
           "anchor_s": 5915.11,
           "span_widths": [
@@ -397,7 +3399,7 @@
             false,
             false
           ],
-          "latency_ms": 55.925299999216804,
+          "latency_ms": 52.023799999915354,
           "top_start_s": 6390.62,
           "anchor_s": 6390.62,
           "span_widths": [
@@ -429,7 +3431,7 @@
             false,
             false
           ],
-          "latency_ms": 55.64099999901373,
+          "latency_ms": 52.08579999998619,
           "top_start_s": 6847.97,
           "anchor_s": 6838.33,
           "span_widths": [
@@ -461,7 +3463,7 @@
             true,
             false
           ],
-          "latency_ms": 61.62360000234912,
+          "latency_ms": 58.137999999416934,
           "top_start_s": 7979.11,
           "anchor_s": 7674.7,
           "span_widths": [
@@ -493,7 +3495,7 @@
             false,
             false
           ],
-          "latency_ms": 57.805299999017734,
+          "latency_ms": 57.83549999978277,
           "top_start_s": 9467.09,
           "anchor_s": 9411.81,
           "span_widths": [
@@ -525,7 +3527,7 @@
             false,
             false
           ],
-          "latency_ms": 52.63360000026296,
+          "latency_ms": 51.80209999980434,
           "top_start_s": 10251.05,
           "anchor_s": 10265.09,
           "span_widths": [
@@ -557,7 +3559,7 @@
             false,
             false
           ],
-          "latency_ms": 59.61160000151722,
+          "latency_ms": 55.11910000041098,
           "top_start_s": 10695.43,
           "anchor_s": 10695.43,
           "span_widths": [
@@ -589,7 +3591,7 @@
             false,
             false
           ],
-          "latency_ms": 55.93180000141729,
+          "latency_ms": 53.16949999996723,
           "top_start_s": 20902.71,
           "anchor_s": 11616.31,
           "span_widths": [
@@ -621,7 +3623,7 @@
             false,
             false
           ],
-          "latency_ms": 57.14720000105444,
+          "latency_ms": 51.64150000018708,
           "top_start_s": 12010.22,
           "anchor_s": 12010.22,
           "span_widths": [
@@ -653,7 +3655,7 @@
             false,
             false
           ],
-          "latency_ms": 63.54220000139321,
+          "latency_ms": 59.49560000044585,
           "top_start_s": 12450.16,
           "anchor_s": 12450.16,
           "span_widths": [
@@ -685,7 +3687,7 @@
             false,
             false
           ],
-          "latency_ms": 55.48600000111037,
+          "latency_ms": 53.50449999968987,
           "top_start_s": 12930.2,
           "anchor_s": 12955.2,
           "span_widths": [
@@ -717,7 +3719,7 @@
             true,
             false
           ],
-          "latency_ms": 61.2122000020463,
+          "latency_ms": 60.107399999651534,
           "top_start_s": 13304.28,
           "anchor_s": 13481.04,
           "span_widths": [
@@ -749,7 +3751,7 @@
             false,
             false
           ],
-          "latency_ms": 55.64729999969131,
+          "latency_ms": 57.17079999976704,
           "top_start_s": 14344.26,
           "anchor_s": 14299.1,
           "span_widths": [
@@ -781,7 +3783,7 @@
             false,
             false
           ],
-          "latency_ms": 54.57309999837889,
+          "latency_ms": 52.908100000422564,
           "top_start_s": 14628.84,
           "anchor_s": 14628.84,
           "span_widths": [
@@ -813,7 +3815,7 @@
             false,
             false
           ],
-          "latency_ms": 59.43850000039674,
+          "latency_ms": 62.16709999989689,
           "top_start_s": 9279.48,
           "anchor_s": 15641.04,
           "span_widths": [
@@ -845,7 +3847,7 @@
             false,
             false
           ],
-          "latency_ms": 51.35650000011083,
+          "latency_ms": 54.195000000618165,
           "top_start_s": 16561.76,
           "anchor_s": 16561.76,
           "span_widths": [
@@ -877,7 +3879,7 @@
             false,
             false
           ],
-          "latency_ms": 53.871299998718314,
+          "latency_ms": 54.07860000013898,
           "top_start_s": 16967.92,
           "anchor_s": 16967.92,
           "span_widths": [
@@ -909,7 +3911,7 @@
             false,
             false
           ],
-          "latency_ms": 61.632999997527804,
+          "latency_ms": 60.76469999970868,
           "top_start_s": 18465.07,
           "anchor_s": 18465.07,
           "span_widths": [
@@ -941,7 +3943,7 @@
             false,
             false
           ],
-          "latency_ms": 59.14950000078534,
+          "latency_ms": 62.81760000001668,
           "top_start_s": 19269.0,
           "anchor_s": 19269.0,
           "span_widths": [
@@ -973,7 +3975,7 @@
             false,
             false
           ],
-          "latency_ms": 56.16359999839915,
+          "latency_ms": 56.58230000062758,
           "top_start_s": 19659.5,
           "anchor_s": 19672.34,
           "span_widths": [
@@ -1005,7 +4007,7 @@
             false,
             false
           ],
-          "latency_ms": 57.742399996641325,
+          "latency_ms": 57.46019999969576,
           "top_start_s": 4131.81,
           "anchor_s": 20187.27,
           "span_widths": [
@@ -1037,7 +4039,7 @@
             false,
             true
           ],
-          "latency_ms": 59.062700001959456,
+          "latency_ms": 64.2877000000226,
           "top_start_s": 20682.46,
           "anchor_s": 20677.98,
           "span_widths": [
@@ -1069,7 +4071,7 @@
             false,
             false
           ],
-          "latency_ms": 66.36109999817563,
+          "latency_ms": 66.65259999954287,
           "top_start_s": 21141.72,
           "anchor_s": 21128.64,
           "span_widths": [
@@ -1101,7 +4103,7 @@
             false,
             false
           ],
-          "latency_ms": 54.94700000053854,
+          "latency_ms": 52.6741999992737,
           "top_start_s": 11255.04,
           "anchor_s": null,
           "span_widths": [
@@ -1133,7 +4135,7 @@
             false,
             false
           ],
-          "latency_ms": 56.95460000060848,
+          "latency_ms": 58.310700000220095,
           "top_start_s": 20965.27,
           "anchor_s": null,
           "span_widths": [
@@ -1165,7 +4167,7 @@
             false,
             false
           ],
-          "latency_ms": 55.18899999879068,
+          "latency_ms": 53.888800000095216,
           "top_start_s": 7688.86,
           "anchor_s": null,
           "span_widths": [
@@ -1197,7 +4199,7 @@
             false,
             false
           ],
-          "latency_ms": 51.599099999293685,
+          "latency_ms": 53.644799999347015,
           "top_start_s": 7562.22,
           "anchor_s": null,
           "span_widths": [
@@ -1229,7 +4231,7 @@
             false,
             false
           ],
-          "latency_ms": 56.1295000006794,
+          "latency_ms": 54.63529999997263,
           "top_start_s": 2947.36,
           "anchor_s": null,
           "span_widths": [
@@ -1261,7 +4263,7 @@
             false,
             false
           ],
-          "latency_ms": 52.00700000204961,
+          "latency_ms": 52.972000000409025,
           "top_start_s": 17357.21,
           "anchor_s": null,
           "span_widths": [
@@ -1293,7 +4295,7 @@
             true,
             false
           ],
-          "latency_ms": 54.31959999987157,
+          "latency_ms": 58.21599999944738,
           "top_start_s": 8894.73,
           "anchor_s": null,
           "span_widths": [
@@ -1325,7 +4327,7 @@
             false,
             false
           ],
-          "latency_ms": 54.75099999966915,
+          "latency_ms": 53.980699999556236,
           "top_start_s": 19363.28,
           "anchor_s": null,
           "span_widths": [
@@ -1357,7 +4359,7 @@
             false,
             false
           ],
-          "latency_ms": 59.88129999968805,
+          "latency_ms": 60.46089999927062,
           "top_start_s": 3122.98,
           "anchor_s": null,
           "span_widths": [
@@ -1389,7 +4391,7 @@
             false,
             false
           ],
-          "latency_ms": 65.69750000198837,
+          "latency_ms": 64.29380000008678,
           "top_start_s": 8523.8,
           "anchor_s": null,
           "span_widths": [
@@ -1421,7 +4423,7 @@
             false,
             false
           ],
-          "latency_ms": 59.837300002982374,
+          "latency_ms": 59.77050000001327,
           "top_start_s": 16002.4,
           "anchor_s": null,
           "span_widths": [
@@ -1453,7 +4455,7 @@
             true,
             false
           ],
-          "latency_ms": 62.18789999911678,
+          "latency_ms": 63.15050000011979,
           "top_start_s": 12746.99,
           "anchor_s": null,
           "span_widths": [
@@ -1485,7 +4487,7 @@
             false,
             false
           ],
-          "latency_ms": 65.0193000001309,
+          "latency_ms": 65.3625999993892,
           "top_start_s": 12124.44,
           "anchor_s": null,
           "span_widths": [
@@ -1501,6 +4503,1508 @@
             19.30999999999949
           ],
           "top_score": null
+        }
+      ]
+    },
+    "hybrid+rerank": {
+      "summary": {
+        "variant": "hybrid+rerank",
+        "n": 46,
+        "recall": {
+          "1": 0.6739130434782609,
+          "5": 0.8695652173913043,
+          "10": 0.9782608695652174
+        },
+        "precision": {
+          "1": 0.6739130434782609,
+          "5": 0.36086956521739133,
+          "10": 0.24347826086956523
+        },
+        "mrr": 0.7653985507246377,
+        "ndcg_at_10": 0.7695786497774931,
+        "median_start_error_s": 0.0,
+        "start_error_n": 23,
+        "mean_span_width_s": 17.452007246376876,
+        "p50_ms": 80.06650000015725,
+        "p95_ms": 112.98695000027692,
+        "by_category": {
+          "conceptual": 0.6,
+          "generated": 0.9090909090909091,
+          "lexical": 0.875
+        }
+      },
+      "queries": [
+        {
+          "question_id": "q001",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 2213.0119000003106,
+          "top_start_s": 407.0,
+          "anchor_s": 407.0,
+          "span_widths": [
+            11.0,
+            4.133333333333326,
+            4.433333333333337,
+            15.519999999999527,
+            18.159999999999854,
+            18.960000000000036,
+            9.566666666666663,
+            20.960000000000036,
+            15.640000000000327,
+            16.079999999999927
+          ],
+          "top_score": 6.822168350219727
+        },
+        {
+          "question_id": "q002",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 74.36880000022938,
+          "top_start_s": 18584.32,
+          "anchor_s": 891.1,
+          "span_widths": [
+            20.040000000000873,
+            16.390000000000327,
+            5.5,
+            16.479999999999563,
+            21.74000000000001,
+            21.24000000000001,
+            5.5,
+            20.100000000000023,
+            16.92000000000189,
+            18.920000000000073
+          ],
+          "top_score": -0.126652330160141
+        },
+        {
+          "question_id": "q003",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 84.44300000064686,
+          "top_start_s": 1844.9,
+          "anchor_s": 1844.9,
+          "span_widths": [
+            21.24000000000001,
+            19.59999999999991,
+            21.51000000000022,
+            15.1200000000008,
+            15.5,
+            16.720000000000255,
+            17.26000000000022,
+            16.230000000000018,
+            20.159999999999854,
+            20.040000000000873
+          ],
+          "top_score": 6.314700126647949
+        },
+        {
+          "question_id": "q004",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 86.355000000367,
+          "top_start_s": 2738.39,
+          "anchor_s": 2334.63,
+          "span_widths": [
+            21.18000000000029,
+            16.159999999999854,
+            18.51000000000022,
+            15.159999999999854,
+            16.960000000000036,
+            20.98999999999978,
+            17.039999999999964,
+            18.720000000000255,
+            21.90000000000009,
+            17.0
+          ],
+          "top_score": 3.8536622524261475
+        },
+        {
+          "question_id": "q005",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 99.11160000046948,
+          "top_start_s": 2816.11,
+          "anchor_s": 2816.11,
+          "span_widths": [
+            21.679999999999836,
+            18.359999999999673,
+            15.460000000000036,
+            27.5,
+            16.799999999999272,
+            4.433333333333337,
+            4.133333333333326,
+            18.820000000000164,
+            11.0,
+            16.5
+          ],
+          "top_score": 5.558476448059082
+        },
+        {
+          "question_id": "q006",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 77.09259999955975,
+          "top_start_s": 3285.02,
+          "anchor_s": 3299.54,
+          "span_widths": [
+            14.440000000000055,
+            16.7800000000002,
+            17.860000000000127,
+            17.19999999999891,
+            19.600000000000364,
+            16.400000000001455,
+            16.150000000001455,
+            15.300000000001091,
+            16.909999999999854,
+            15.44000000000051
+          ],
+          "top_score": 1.9875372648239136
+        },
+        {
+          "question_id": "q007",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 73.06120000066585,
+          "top_start_s": 3656.47,
+          "anchor_s": 3648.31,
+          "span_widths": [
+            18.420000000000073,
+            16.38000000000011,
+            15.179999999999836,
+            18.199999999999818,
+            18.800000000000182,
+            15.759999999999764,
+            15.720000000001164,
+            16.740000000000236,
+            16.360000000000127,
+            17.81999999999971
+          ],
+          "top_score": 6.1296162605285645
+        },
+        {
+          "question_id": "q008",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 81.70760000029986,
+          "top_start_s": 4131.81,
+          "anchor_s": 4131.81,
+          "span_widths": [
+            19.849999999999454,
+            19.88000000000011,
+            19.7400000000016,
+            20.970000000000255,
+            20.7199999999998,
+            4.133333333333326,
+            4.433333333333337,
+            11.0,
+            15.739999999999782,
+            20.579999999999927
+          ],
+          "top_score": 5.488487243652344
+        },
+        {
+          "question_id": "q009",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 69.69110000045475,
+          "top_start_s": 4633.21,
+          "anchor_s": 4633.21,
+          "span_widths": [
+            17.640000000000327,
+            16.01000000000022,
+            15.239999999999782,
+            15.039999999999964,
+            15.61999999999989,
+            13.639999999999418,
+            16.44000000000051,
+            17.600000000000364,
+            17.69999999999891,
+            19.5
+          ],
+          "top_score": 7.299540996551514
+        },
+        {
+          "question_id": "q010",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 96.17019999950571,
+          "top_start_s": 5488.92,
+          "anchor_s": 5497.92,
+          "span_widths": [
+            12.760000000000218,
+            18.280000000000655,
+            16.4399999999996,
+            21.279999999999745,
+            20.770000000000437,
+            14.479999999999563,
+            16.270000000000437,
+            18.859999999998763,
+            5.666666666667879,
+            13.8799999999992
+          ],
+          "top_score": 1.717631220817566
+        },
+        {
+          "question_id": "q011",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 70.15380000029836,
+          "top_start_s": 5923.55,
+          "anchor_s": 5915.11,
+          "span_widths": [
+            15.479999999999563,
+            16.32000000000062,
+            19.55999999999949,
+            18.76000000000022,
+            15.350000000000364,
+            17.399999999999636,
+            15.280000000000655,
+            17.2400000000016,
+            16.520000000000437,
+            15.399999999999636
+          ],
+          "top_score": 8.200540542602539
+        },
+        {
+          "question_id": "q012",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 66.82649999947898,
+          "top_start_s": 8515.32,
+          "anchor_s": 6390.62,
+          "span_widths": [
+            15.840000000000146,
+            18.200000000000728,
+            21.269999999998618,
+            18.799999999999272,
+            18.88000000000011,
+            16.599999999999454,
+            21.390000000001237,
+            17.340000000000146,
+            15.960000000000946,
+            17.039999999999054
+          ],
+          "top_score": 4.825927734375
+        },
+        {
+          "question_id": "q013",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 69.34110000020155,
+          "top_start_s": 6847.97,
+          "anchor_s": 6838.33,
+          "span_widths": [
+            16.48999999999978,
+            20.360000000000582,
+            15.680000000000291,
+            15.720000000000255,
+            20.5600000000004,
+            15.44000000000051,
+            15.399999999999636,
+            13.640000000000327,
+            19.159999999999854,
+            17.01000000000022
+          ],
+          "top_score": 8.993597030639648
+        },
+        {
+          "question_id": "q014",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 102.8519999999844,
+          "top_start_s": 7979.11,
+          "anchor_s": 7674.7,
+          "span_widths": [
+            18.039999999999964,
+            12.679999999999382,
+            20.020000000000437,
+            17.399999999999636,
+            15.839999999999236,
+            18.050000000000182,
+            17.039999999999964,
+            17.0,
+            18.840000000000146,
+            17.32000000000062
+          ],
+          "top_score": 6.678311347961426
+        },
+        {
+          "question_id": "q016",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 73.10690000031173,
+          "top_start_s": 9424.41,
+          "anchor_s": 9411.81,
+          "span_widths": [
+            15.1200000000008,
+            21.399999999999636,
+            19.55999999999949,
+            16.44000000000051,
+            18.029999999998836,
+            17.039999999999054,
+            17.959999999999127,
+            15.590000000000146,
+            18.8799999999992,
+            16.200000000000728
+          ],
+          "top_score": 2.6794991493225098
+        },
+        {
+          "question_id": "q017",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 68.74950000019453,
+          "top_start_s": 10251.05,
+          "anchor_s": 10265.09,
+          "span_widths": [
+            18.1200000000008,
+            15.770000000000437,
+            19.920000000000073,
+            15.360000000000582,
+            16.23999999999978,
+            16.579999999999927,
+            19.359999999998763,
+            19.639999999999873,
+            14.44000000000051,
+            21.789999999999964
+          ],
+          "top_score": 4.226621627807617
+        },
+        {
+          "question_id": "q018",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 72.72830000056274,
+          "top_start_s": 10695.43,
+          "anchor_s": 10695.43,
+          "span_widths": [
+            15.520000000000437,
+            18.639999999999418,
+            15.880000000001019,
+            15.680000000000291,
+            20.279999999998836,
+            18.840000000000146,
+            19.039999999999054,
+            21.68000000000029,
+            16.42000000000189,
+            19.520000000000437
+          ],
+          "top_score": 8.384407043457031
+        },
+        {
+          "question_id": "q019",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 70.13959999949293,
+          "top_start_s": 20902.71,
+          "anchor_s": 11616.31,
+          "span_widths": [
+            17.44000000000233,
+            18.340000000000146,
+            17.80000000000109,
+            16.400000000001455,
+            17.600000000000364,
+            16.399999999999636,
+            15.800000000001091,
+            17.100000000000364,
+            19.0,
+            16.399999999999636
+          ],
+          "top_score": 6.023552417755127
+        },
+        {
+          "question_id": "q020",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 67.13089999993826,
+          "top_start_s": 12010.22,
+          "anchor_s": 12010.22,
+          "span_widths": [
+            17.0,
+            19.900000000001455,
+            16.56999999999971,
+            16.299999999999272,
+            18.600000000000364,
+            21.0,
+            13.799999999999272,
+            15.399999999999636,
+            18.479999999999563,
+            18.600000000000364
+          ],
+          "top_score": 7.960145950317383
+        },
+        {
+          "question_id": "q021",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 78.31629999964207,
+          "top_start_s": 17972.83,
+          "anchor_s": 12450.16,
+          "span_widths": [
+            19.529999999998836,
+            16.600000000000364,
+            19.900000000001455,
+            19.88000000000011,
+            19.7400000000016,
+            20.149999999999636,
+            21.679999999999836,
+            21.460000000000946,
+            20.19999999999891,
+            16.799999999999272
+          ],
+          "top_score": 3.8915724754333496
+        },
+        {
+          "question_id": "q022",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            true,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 69.46859999970911,
+          "top_start_s": 12930.2,
+          "anchor_s": 12955.2,
+          "span_widths": [
+            18.0,
+            21.0,
+            21.399999999999636,
+            21.399999999999636,
+            16.399999999999636,
+            16.80000000000109,
+            19.900000000001455,
+            18.600000000000364,
+            18.43999999999869,
+            16.56999999999971
+          ],
+          "top_score": 6.007832050323486
+        },
+        {
+          "question_id": "q023",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 73.20079999954032,
+          "top_start_s": 11028.94,
+          "anchor_s": 13481.04,
+          "span_widths": [
+            17.539999999999054,
+            13.639999999999418,
+            16.600000000000364,
+            19.839999999998327,
+            18.19999999999891,
+            13.600000000000364,
+            15.600000000000364,
+            20.399999999999636,
+            18.710000000000946,
+            19.68000000000029
+          ],
+          "top_score": 6.317679405212402
+        },
+        {
+          "question_id": "q024",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 80.9755000000223,
+          "top_start_s": 14299.1,
+          "anchor_s": 14299.1,
+          "span_widths": [
+            21.68000000000029,
+            16.8799999999992,
+            18.8799999999992,
+            17.600000000000364,
+            15.720000000001164,
+            20.479999999999563,
+            19.080000000001746,
+            15.360000000000582,
+            15.680000000000291,
+            15.159999999999854
+          ],
+          "top_score": 3.673602342605591
+        },
+        {
+          "question_id": "q025",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 73.40939999994589,
+          "top_start_s": 14628.84,
+          "anchor_s": 14628.84,
+          "span_widths": [
+            16.920000000000073,
+            17.800000000000182,
+            15.399999999999636,
+            16.520000000000437,
+            18.199999999999818,
+            21.11999999999898,
+            15.359999999999673,
+            19.520000000000437,
+            18.06000000000131,
+            17.55999999999949
+          ],
+          "top_score": 5.887411117553711
+        },
+        {
+          "question_id": "q026",
+          "category": "generated",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 81.91019999958371,
+          "top_start_s": 9279.48,
+          "anchor_s": 15641.04,
+          "span_widths": [
+            16.960000000000946,
+            20.479999999999563,
+            14.0,
+            18.76000000000022,
+            18.719999999999345,
+            18.200000000000728,
+            16.199999999999818,
+            15.319999999999709,
+            16.44000000000051,
+            20.23999999999978
+          ],
+          "top_score": 8.658519744873047
+        },
+        {
+          "question_id": "q028",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 110.53219999939756,
+          "top_start_s": 16561.76,
+          "anchor_s": 16561.76,
+          "span_widths": [
+            19.68000000000029,
+            15.600000000002183,
+            20.080000000001746,
+            18.159999999999854,
+            17.520000000000437,
+            15.840000000000146,
+            14.650000000001455,
+            15.959999999999127,
+            15.239999999997963,
+            15.969999999997526
+          ],
+          "top_score": 2.4505794048309326
+        },
+        {
+          "question_id": "q029",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 107.58590000023105,
+          "top_start_s": 16982.0,
+          "anchor_s": 16967.92,
+          "span_widths": [
+            16.63000000000102,
+            17.0,
+            17.94000000000233,
+            16.159999999999854,
+            15.0099999999984,
+            16.080000000001746,
+            16.0,
+            20.549999999999272,
+            17.649999999997817,
+            21.360000000000014
+          ],
+          "top_score": 2.124630928039551
+        },
+        {
+          "question_id": "q032",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 79.24860000002809,
+          "top_start_s": 18465.07,
+          "anchor_s": 18465.07,
+          "span_widths": [
+            15.319999999999709,
+            17.56000000000131,
+            15.640000000003056,
+            18.349999999998545,
+            17.480000000000018,
+            15.059999999999945,
+            17.959999999999127,
+            15.7599999999984,
+            14.5,
+            17.039999999999054
+          ],
+          "top_score": 5.597466945648193
+        },
+        {
+          "question_id": "q033",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 79.29620000049908,
+          "top_start_s": 19269.0,
+          "anchor_s": 19269.0,
+          "span_widths": [
+            18.400000000001455,
+            16.279999999998836,
+            19.840000000000146,
+            13.319999999999709,
+            16.399999999999636,
+            14.759999999999991,
+            19.04000000000019,
+            15.479999999999563,
+            18.279999999999973,
+            20.760000000002037
+          ],
+          "top_score": 7.825737953186035
+        },
+        {
+          "question_id": "q034",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 88.4356000005937,
+          "top_start_s": 19672.34,
+          "anchor_s": 19672.34,
+          "span_widths": [
+            15.079999999998108,
+            16.400000000001455,
+            17.31999999999971,
+            18.840000000000146,
+            17.959999999999127,
+            21.030000000002474,
+            15.43999999999869,
+            11.640000000003056,
+            17.340000000000146,
+            17.840000000000146
+          ],
+          "top_score": 6.220592021942139
+        },
+        {
+          "question_id": "q035",
+          "category": "generated",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 76.14159999957337,
+          "top_start_s": 20192.95,
+          "anchor_s": 20187.27,
+          "span_widths": [
+            17.43999999999869,
+            20.30999999999949,
+            19.849999999999454,
+            18.37000000000262,
+            18.040000000000873,
+            20.610000000000127,
+            20.25,
+            20.829999999999927,
+            19.31999999999971,
+            15.590000000000146
+          ],
+          "top_score": 3.9748694896698
+        },
+        {
+          "question_id": "q036",
+          "category": "generated",
+          "relevance": [
+            false,
+            true,
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 92.47950000008132,
+          "top_start_s": 20605.42,
+          "anchor_s": 20677.98,
+          "span_widths": [
+            18.600000000002183,
+            21.729999999999563,
+            15.279999999998836,
+            19.080000000001746,
+            11.119999999998981,
+            20.51000000000022,
+            15.119999999998981,
+            17.220000000001164,
+            15.340000000000146,
+            18.700000000000728
+          ],
+          "top_score": 8.795435905456543
+        },
+        {
+          "question_id": "q037",
+          "category": "generated",
+          "relevance": [
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 88.8107000000673,
+          "top_start_s": 21154.46,
+          "anchor_s": 21128.64,
+          "span_widths": [
+            18.31999999999971,
+            16.139999999999418,
+            18.600000000002183,
+            15.600000000000364,
+            11.639999999999418,
+            15.440000000000055,
+            17.489999999997963,
+            13.640000000000327,
+            15.399999999999636,
+            13.319999999999709
+          ],
+          "top_score": 7.1984543800354
+        },
+        {
+          "question_id": "lexi001",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 84.68029999949067,
+          "top_start_s": 11300.92,
+          "anchor_s": null,
+          "span_widths": [
+            18.799999999999272,
+            17.600000000000364,
+            10.0,
+            14.0,
+            15.0,
+            16.399999999999636,
+            17.399999999999636,
+            19.200000000000728,
+            15.399999999999636,
+            17.80000000000109
+          ],
+          "top_score": 7.748696327209473
+        },
+        {
+          "question_id": "lexi002",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 100.15620000012859,
+          "top_start_s": 20965.27,
+          "anchor_s": null,
+          "span_widths": [
+            18.88000000000102,
+            20.279999999998836,
+            20.760000000002037,
+            21.0,
+            17.56000000000131,
+            15.880000000001019,
+            17.479999999999563,
+            15.520000000000437,
+            17.30999999999949,
+            13.279999999999745
+          ],
+          "top_score": 4.063292980194092
+        },
+        {
+          "question_id": "lexi003",
+          "category": "lexical",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 130.23290000000998,
+          "top_start_s": 18165.466666666667,
+          "anchor_s": null,
+          "span_widths": [
+            6.533333333332848,
+            5.5,
+            15.279999999998836,
+            22.0,
+            16.5,
+            55.0,
+            15.720000000001164,
+            15.479999999999563,
+            93.5,
+            9.33333333333303
+          ],
+          "top_score": 0.1709839105606079
+        },
+        {
+          "question_id": "lexi004",
+          "category": "lexical",
+          "relevance": [
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 86.8374000001495,
+          "top_start_s": 7562.22,
+          "anchor_s": null,
+          "span_widths": [
+            17.039999999999964,
+            17.519999999999527,
+            15.4399999999996,
+            18.050000000000182,
+            19.23999999999978,
+            17.100000000000364,
+            17.32000000000062,
+            6.333333333333485,
+            16.679999999999836,
+            16.420000000000073
+          ],
+          "top_score": 1.7837786674499512
+        },
+        {
+          "question_id": "lexi005",
+          "category": "lexical",
+          "relevance": [
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 73.8216999998258,
+          "top_start_s": 4575.44,
+          "anchor_s": null,
+          "span_widths": [
+            16.080000000000837,
+            20.519999999999982,
+            17.920000000000073,
+            19.55999999999949,
+            19.520000000000437,
+            16.7800000000002,
+            15.719999999997526,
+            19.199999999999818,
+            15.760000000002037,
+            15.760000000000218
+          ],
+          "top_score": 1.4711496829986572
+        },
+        {
+          "question_id": "lexi006",
+          "category": "lexical",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 71.50369999999384,
+          "top_start_s": 17141.94,
+          "anchor_s": null,
+          "span_widths": [
+            17.280000000002474,
+            16.159999999999854,
+            20.75,
+            16.42000000000189,
+            17.05999999999949,
+            21.68000000000029,
+            19.520000000000437,
+            16.029999999998836,
+            15.840000000000146,
+            16.61999999999989
+          ],
+          "top_score": 4.187291145324707
+        },
+        {
+          "question_id": "lexi007",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false
+          ],
+          "latency_ms": 75.7804999993823,
+          "top_start_s": 8894.73,
+          "anchor_s": null,
+          "span_widths": [
+            16.909999999999854,
+            18.559999999999945,
+            15.759999999999991,
+            18.06999999999971,
+            19.079999999999927,
+            11.0,
+            11.0,
+            21.44000000000051,
+            15.710000000000946,
+            17.519999999999527
+          ],
+          "top_score": 4.447041034698486
+        },
+        {
+          "question_id": "lexi008",
+          "category": "lexical",
+          "relevance": [
+            true,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 74.57160000012664,
+          "top_start_s": 19363.28,
+          "anchor_s": null,
+          "span_widths": [
+            16.0,
+            17.040000000000873,
+            13.720000000001164,
+            16.7599999999984,
+            18.159999999999854,
+            16.840000000000146,
+            17.92000000000189,
+            20.109999999996944,
+            16.450000000000728,
+            18.220000000001164
+          ],
+          "top_score": 5.607678413391113
+        },
+        {
+          "question_id": "conc001",
+          "category": "conceptual",
+          "relevance": [
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 90.67940000022645,
+          "top_start_s": 3134.74,
+          "anchor_s": null,
+          "span_widths": [
+            13.980000000000018,
+            18.519999999999982,
+            20.889999999999418,
+            21.270000000000437,
+            15.600000000002183,
+            17.640000000000327,
+            21.519999999999982,
+            15.1200000000008,
+            19.609999999998763,
+            17.200000000000273
+          ],
+          "top_score": -1.7479349374771118
+        },
+        {
+          "question_id": "conc002",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            true,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 80.83679999981541,
+          "top_start_s": 1406.69,
+          "anchor_s": null,
+          "span_widths": [
+            21.679999999999836,
+            20.549999999999272,
+            17.280000000002474,
+            20.460000000000036,
+            18.23999999999978,
+            21.720000000000027,
+            18.51000000000022,
+            18.18999999999869,
+            21.80000000000109,
+            17.649999999997817
+          ],
+          "top_score": 3.345390796661377
+        },
+        {
+          "question_id": "conc003",
+          "category": "conceptual",
+          "relevance": [
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "latency_ms": 113.80520000057004,
+          "top_start_s": 7562.22,
+          "anchor_s": null,
+          "span_widths": [
+            17.039999999999964,
+            19.44000000000051,
+            19.48999999999978,
+            18.51000000000022,
+            17.840000000000146,
+            19.920000000000073,
+            17.600000000000364,
+            19.520000000000437,
+            15.839999999999236,
+            19.160000000000764
+          ],
+          "top_score": 0.05040355771780014
+        },
+        {
+          "question_id": "conc004",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+            false
+          ],
+          "latency_ms": 83.40430000043852,
+          "top_start_s": 4510.83,
+          "anchor_s": null,
+          "span_widths": [
+            19.079999999999927,
+            16.30999999999949,
+            17.76000000000022,
+            18.959999999999127,
+            15.720000000000255,
+            16.720000000000255,
+            18.040000000000873,
+            15.479999999999563,
+            17.7599999999984,
+            17.720000000000255
+          ],
+          "top_score": 1.2991669178009033
+        },
+        {
+          "question_id": "conc005",
+          "category": "conceptual",
+          "relevance": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "latency_ms": 97.70260000004782,
+          "top_start_s": 12124.44,
+          "anchor_s": null,
+          "span_widths": [
+            17.69999999999891,
+            21.279999999998836,
+            19.859999999998763,
+            15.299999999999272,
+            19.30999999999949,
+            17.639999999999418,
+            20.279999999998836,
+            17.479999999999563,
+            15.100000000000364,
+            20.19999999999891
+          ],
+          "top_score": 2.5266940593719482
         }
       ]
     }

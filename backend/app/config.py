@@ -53,6 +53,21 @@ class Settings(BaseSettings):
     # Empty means auto-detect. Pinning the language skips detection and avoids
     # a misdetected opening line derailing the whole transcript.
     whisper_language: str = ""
+    # Voice-activity detection, on by default.
+    #
+    # It suppresses Whisper's well-documented habit of inventing text over
+    # silence ("Thank you for watching" and similar training artefacts), which
+    # is why it is the default. But it decides what counts as speech *before*
+    # transcription, and on media where dialogue sits under loud effects it
+    # discards real speech: measured on a 65 s game clip, VAD kept 8.3 s of
+    # speech where disabling it recovered 39 s, corroborated line-for-line by
+    # the game's own on-screen subtitles.
+    #
+    # Turn it off for noisy sources; leave it on for lectures and screencasts,
+    # where long true silences are common and hallucination is the real risk.
+    whisper_vad_filter: bool = True
+    # Lower is more permissive. Only consulted when the filter is on.
+    whisper_vad_threshold: float = 0.5
 
     # ─── Embeddings ────────────────────────────────────────────────────────
     # bge-large-en-v1.5 is 1024-dim and ~1.3 GB VRAM. Changing this needs a

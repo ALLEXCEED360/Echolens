@@ -1,5 +1,8 @@
 "use client";
 
+import { Icon } from "@/components/ui/Icon";
+import { ErrorNote } from "@/components/ui";
+
 import { useCallback, useRef, useState } from "react";
 import { ApiError, uploadVideo, type UploadHandle } from "@/lib/api";
 import { formatBytes } from "@/lib/format";
@@ -107,19 +110,25 @@ export function UploadZone({ onUploaded }: Props) {
             inputRef.current?.click();
           }
         }}
-        className={`cursor-pointer rounded-lg border border-dashed p-8 text-center transition-colors ${
+        className={`cursor-pointer rounded-lg border border-dashed p-7 text-center transition-colors duration-150 ${
           dragging
-            ? "border-accent-500 bg-accent-500/5"
-            : "border-ink-700 bg-ink-900 hover:border-ink-600 hover:bg-ink-850"
+            ? "border-accent-500 bg-accent-950"
+            : "border-line-strong bg-surface hover:border-ink-600 hover:bg-raised"
         }`}
       >
-        <div className="mb-1.5 text-2xl" aria-hidden>
-          ⬆
-        </div>
-        <p className="text-sm text-ink-200">
-          Drop a video here, or <span className="text-accent-400">browse</span>
+        <span
+          className={`mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-150 ${
+            dragging
+              ? "border-accent-500 text-accent-400"
+              : "border-line-strong text-ink-500"
+          }`}
+        >
+          <Icon name="upload" size={18} />
+        </span>
+        <p className="text-sm text-ink-100">
+          Drop a video here, or <span className="text-accent-400 underline underline-offset-2">browse</span>
         </p>
-        <p className="mt-1 text-xs text-ink-400">{ACCEPTED.join("  ·  ")}</p>
+        <p className="mono mt-1.5 text-2xs text-ink-500">{ACCEPTED.join("  ·  ")}</p>
       </div>
 
       <input
@@ -135,9 +144,9 @@ export function UploadZone({ onUploaded }: Props) {
       />
 
       {error && (
-        <p className="mt-2.5 rounded border border-danger-400/30 bg-danger-400/10 px-3 py-2 text-xs text-danger-400">
-          {error}
-        </p>
+        <div className="mt-2.5">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
       )}
     </div>
   );

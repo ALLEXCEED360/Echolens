@@ -2,6 +2,8 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Icon } from "@/components/ui/Icon";
+import { Input } from "@/components/ui";
 import { formatTimestamp } from "@/lib/format";
 import type { TranscriptSegment } from "@/lib/types";
 
@@ -65,7 +67,7 @@ export function TranscriptPanel({ segments, currentTime, onSeek }: Props) {
     count: visible.length,
     getScrollElement: () => scrollRef.current,
     // Most segments are one line; measurement corrects the ones that wrap.
-    estimateSize: () => 30,
+    estimateSize: () => 32,
     overscan: 12,
     getItemKey: useCallback((i: number) => visible[i]?.id ?? i, [visible]),
     // The library re-renders via flushSync by default so measurements apply
@@ -112,34 +114,50 @@ export function TranscriptPanel({ segments, currentTime, onSeek }: Props) {
   const items = virtualizer.getVirtualItems();
 
   return (
-    <div className="flex min-h-0 flex-col">
-      <div className="mb-2.5 flex items-center gap-2">
-        <input
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center gap-2 border-b border-line px-3 py-2.5">
+        <Input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          placeholder={`Search ${segments.length.toLocaleString()} segments`}
-          className="min-w-0 flex-1 rounded border border-ink-700 bg-ink-900 px-2.5 py-1.5 text-xs text-ink-200 placeholder:text-ink-600"
+          icon="search"
+          aria-label="Filter transcript"
+          placeholder={`Filter ${segments.length.toLocaleString()} segments`}
+          className="min-w-0 flex-1"
         />
+        {filter && (
+          <button
+            type="button"
+            onClick={() => setFilter("")}
+            aria-label="Clear filter"
+            className="shrink-0 cursor-pointer rounded p-1.5 text-ink-500 transition-colors hover:text-ink-100"
+          >
+            <Icon name="close" size={14} />
+          </button>
+        )}
         <button
+          type="button"
           onClick={() => setFollow((f) => !f)}
+          aria-pressed={follow}
           title="Keep the transcript scrolled to the playhead"
-          className={`shrink-0 rounded border px-2 py-1.5 text-[11px] transition-colors ${
+          className={`inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors duration-150 ${
             follow
-              ? "border-accent-500/40 text-accent-400"
-              : "border-ink-700 text-ink-400 hover:text-ink-200"
+              ? "border-accent-600/60 bg-accent-950 text-accent-300"
+              : "border-line-strong text-ink-400 hover:text-ink-100"
           }`}
         >
+          <Icon name="arrow-right" size={12} strokeWidth={2} />
           Follow
         </button>
       </div>
 
       {needle && (
-        <p className="mb-1.5 text-[11px] text-ink-400">
-          {visible.length.toLocaleString()} of {segments.length.toLocaleString()} segments
+        <p className="border-b border-line px-3.5 py-1.5 text-2xs text-ink-500">
+          {visible.length.toLocaleString()} of {segments.length.toLocaleString()} segments match
+          <span className="mono text-ink-400"> “{filter}”</span>
         </p>
       )}
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto pr-1">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-2 py-1.5">
         {/* Spacer sized to the full list so the scrollbar reflects reality. */}
         <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
           {items.map((item) => {
@@ -155,19 +173,27 @@ export function TranscriptPanel({ segments, currentTime, onSeek }: Props) {
               >
                 <button
                   onClick={() => onSeek(segment.start_s)}
-                  className={`flex w-full gap-2.5 rounded px-2 py-1.5 text-left transition-colors ${
-                    active ? "bg-accent-500/10" : "hover:bg-ink-850"
+                  className={`relative flex w-full cursor-pointer gap-3 rounded-md py-1.5 pl-3 pr-2 text-left transition-colors duration-150 ${
+                    active ? "bg-accent-950" : "hover:bg-ink-850"
                   }`}
                 >
+                  {/* The spoken line you are on gets a rail, not just a tint —
+                      a background wash alone is easy to lose while scrolling. */}
+                  {active && (
+                    <span
+                      className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-accent-400"
+                      aria-hidden
+                    />
+                  )}
                   <span
-                    className={`tabular row-time shrink-0 text-[11px] leading-5 ${
-                      active ? "text-accent-400" : "text-ink-600"
+                    className={`tabular row-time shrink-0 text-2xs leading-5 ${
+                      active ? "text-accent-400" : "text-ink-500"
                     }`}
                   >
                     {formatTimestamp(segment.start_s)}
                   </span>
                   <span
-                    className={`row-text text-xs leading-5 ${
+                    className={`row-text text-sm leading-5 ${
                       active ? "text-ink-50" : "text-ink-300"
                     }`}
                   >
@@ -190,7 +216,7 @@ function highlight(text: string, needle: string) {
 
   return parts.map((part, i) =>
     part.toLowerCase() === needle ? (
-      <mark key={i} className="bg-accent-500/25 text-accent-400">
+      <mark key={i} className="rounded-sm bg-accent-500/25 px-0.5 text-accent-300">
         {part}
       </mark>
     ) : (

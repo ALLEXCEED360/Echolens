@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
+import { Button, ErrorNote, Skeleton } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { ApiError, api } from "@/lib/api";
 import { formatTimestamp } from "@/lib/format";
 import type { AnswerResponse, Citation } from "@/lib/types";
@@ -66,43 +68,80 @@ export function AskPanel({ videoId, collectionId, onSeek }: Props) {
           e.preventDefault();
           void ask(question);
         }}
-        className="flex gap-2"
+        className="flex flex-col gap-2"
       >
-        <input
+        {/* A textarea, not a single-line input: real questions are longer than
+            a search term, and a one-line box that scrolls sideways discourages
+            asking a proper one. */}
+        <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder={videoId ? "Ask about this video…" : "Ask about your videos…"}
-          className="min-w-0 flex-1 rounded border border-ink-700 bg-ink-900 px-3 py-2 text-sm text-ink-200 placeholder:text-ink-600"
+          onKeyDown={(e) => {
+            // Enter submits; Shift+Enter adds a line. Standard for a prompt box.
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              void ask(question);
+            }
+          }}
+          rows={3}
+          aria-label="Your question"
+          placeholder={
+            videoId
+              ? "What is a prefab and why would I use one?"
+              : "Ask anything about your indexed videos…"
+          }
+          className="w-full resize-y rounded-md border border-line-strong bg-ink-900 px-3 py-2.5 text-sm leading-6 text-ink-100 placeholder:text-ink-500 transition-colors duration-150 hover:border-ink-600 focus:border-accent-600 focus:outline-none focus-visible:outline-2 focus-visible:outline-accent-400"
         />
-        <button
-          type="submit"
-          disabled={loading || question.trim().length < 3}
-          className="shrink-0 rounded border border-accent-500/40 px-3 py-2 text-xs text-accent-400 transition-colors hover:bg-accent-500/10 disabled:opacity-40"
-        >
-          {loading ? "…" : "Ask"}
-        </button>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-2xs text-ink-500">
+            Answers cite the moment they came from.
+          </span>
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            icon="sparkles"
+            disabled={loading || question.trim().length < 3}
+          >
+            {loading ? "Asking…" : "Ask"}
+          </Button>
+        </div>
       </form>
 
       {error && (
-        <p className="mt-2.5 rounded border border-danger-400/30 bg-danger-400/10 px-3 py-2 text-xs text-danger-400">
-          {error}
-        </p>
+        <div className="mt-3">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
       )}
 
+      {/* Skeletons rather than a line of text: they reserve the space the
+          answer will occupy, so nothing below jumps when it arrives. */}
       {loading && (
-        <p className="mt-3 text-xs text-ink-400">Retrieving evidence and answering…</p>
+        <div className="mt-3 space-y-2" aria-live="polite" aria-busy="true">
+          <span className="sr-only">Retrieving evidence and answering</span>
+          <Skeleton className="h-3.5 w-full" />
+          <Skeleton className="h-3.5 w-[92%]" />
+          <Skeleton className="h-3.5 w-[70%]" />
+          <Skeleton className="mt-3 h-11 w-full" />
+        </div>
       )}
 
       {result && !loading && (
         <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
           <div
-            className={`rounded-lg border px-3 py-2.5 ${
+            className={`animate-fade-up rounded-lg border px-3.5 py-3 ${
               result.refused
-                ? "border-warn-400/30 bg-warn-400/5"
-                : "border-ink-800 bg-ink-900"
+                ? "border-warn-400/30 bg-warn-950"
+                : "border-line bg-raised"
             }`}
           >
-            <p className="text-xs leading-6 text-ink-100">
+            {result.refused && (
+              <p className="mb-1.5 flex items-center gap-1.5 text-2xs font-medium uppercase tracking-wide text-warn-400">
+                <Icon name="alert" size={12} />
+                No answer in this corpus
+              </p>
+            )}
+            <p className="text-sm leading-6 text-ink-100">
               <AnswerText
                 text={result.answer}
                 citations={result.citations}
@@ -111,23 +150,27 @@ export function AskPanel({ videoId, collectionId, onSeek }: Props) {
             </p>
 
             {result.refused && result.refusal_reason && (
-              <p className="mt-2 text-[10px] text-warn-400/80">
-                {result.refusal_reason}
-              </p>
+              <p className="mt-2 text-2xs leading-4 text-warn-400/80">{result.refusal_reason}</p>
             )}
           </div>
 
           {result.citations.length > 0 && (
-            <ul className="mt-2 space-y-1">
+            <>
+              <h3 className="mt-3.5 mb-1.5 flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wide text-ink-500">
+                <Icon name="quote" size={11} />
+                Evidence · {result.citations.length}
+              </h3>
+              <ul className="space-y-1">
               {result.citations.map((c) => (
                 <li key={c.marker}>
                   <CitationRow citation={c} showVideo={!videoId} onSeek={onSeek} />
                 </li>
               ))}
-            </ul>
+              </ul>
+            </>
           )}
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] text-ink-600">
+          <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-line pt-2 text-2xs text-ink-500">
             <span className="tabular">{result.took_ms.toFixed(0)}ms</span>
             {result.model && <span>{result.model}</span>}
             {result.uncited_sentences > 0 && (
@@ -159,22 +202,22 @@ export function AskPanel({ videoId, collectionId, onSeek }: Props) {
                   className="rounded border border-ink-800 bg-ink-950 px-2.5 py-1.5"
                 >
                   <div className="flex items-baseline gap-2">
-                    <span className="tabular shrink-0 text-[10px] text-ink-600">
+                    <span className="tabular shrink-0 text-2xs text-ink-500">
                       c_{e.marker}
                     </span>
                     <button
                       onClick={() => onSeek?.(e.start_s)}
-                      className="tabular text-[10px] text-accent-400"
+                      className="tabular text-2xs text-accent-400"
                     >
                       {formatTimestamp(e.start_s)}
                     </button>
                     {e.relevance != null && (
-                      <span className="tabular ml-auto text-[10px] text-ink-600">
+                      <span className="tabular ml-auto text-2xs text-ink-500">
                         {e.relevance.toFixed(1)}
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-ink-400">
+                  <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-ink-400">
                     {e.text}
                   </p>
                 </li>
@@ -232,7 +275,7 @@ function CitationChip({
   const title = `${citation.video_title} — ${citation.text.slice(0, 160)}`;
 
   const className =
-    "tabular mx-0.5 rounded bg-accent-500/15 px-1 py-px align-baseline text-[10px] text-accent-400 hover:bg-accent-500/25";
+    "tabular mx-0.5 rounded bg-accent-500/15 px-1 py-px align-baseline text-2xs text-accent-400 hover:bg-accent-500/25";
 
   return onSeek ? (
     <button onClick={() => onSeek(citation.start_s)} title={title} className={className}>
@@ -261,14 +304,14 @@ function CitationRow({
   const body = (
     <>
       <div className="flex items-baseline gap-2">
-        <span className="tabular shrink-0 text-[10px] text-accent-400">
+        <span className="tabular shrink-0 text-2xs text-accent-400">
           {formatTimestamp(citation.start_s)}
         </span>
         {showVideo && (
-          <span className="truncate text-[10px] text-ink-500">{citation.video_title}</span>
+          <span className="truncate text-2xs text-ink-500">{citation.video_title}</span>
         )}
       </div>
-      <p className="mt-0.5 line-clamp-2 text-[11px] leading-4 text-ink-400">{citation.text}</p>
+      <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-ink-400">{citation.text}</p>
     </>
   );
 

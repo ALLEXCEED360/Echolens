@@ -57,6 +57,11 @@ CANDIDATES_PER_RETRIEVER = 50
 # semantic", not "0.25 precisely".
 DEFAULT_WEIGHTS = {"semantic": 1.0, "lexical": 0.25}
 
+# How many top lexical hits are guaranteed a place in the rerank pool,
+# regardless of fused score. Small on purpose: this is a safety net for
+# exact-term queries semantic search cannot see, not a second ranking.
+LEXICAL_GUARANTEED_SLOTS = 5
+
 
 @dataclass
 class TemporalEvidence:
@@ -98,6 +103,30 @@ def _apply_filters(stmt, *, video_ids, kinds, time_range):
     return stmt
 
 
+def _best_frame(keyframes, start_s: float, end_s: float, lo: float, hi: float):
+    """The keyframe covering a hit, or the nearest one if none covers it.
+
+    Overlap is measured against the hit's real span; the padded window only
+    decides which frames are eligible. Ties break toward the earlier frame,
+    which is the one whose content was on screen as the moment began.
+    """
+    eligible = [k for k in keyframes if k.start_s <= hi and k.end_s >= lo]
+    if not eligible:
+        return None
+
+    def overlap(frame) -> float:
+        return max(0.0, min(frame.end_s, end_s) - max(frame.start_s, start_s))
+
+    best = max(eligible, key=overlap)
+    if overlap(best) > 0:
+        return best
+
+    # Nothing genuinely overlaps — the hit falls between frames. Fall back to
+    # whichever sits closest, rather than whichever happens to be first.
+    midpoint = (start_s + end_s) / 2
+    return min(eligible, key=lambda k: abs(k.time_s - midpoint))
+
+
 @dataclass
 class Hit:
     chunk_id: uuid.UUID
@@ -107,6 +136,11 @@ class Hit:
     end_s: float
     text: str
     score: float
+    # Which modality this came from: spoken transcript, or text read off the
+    # screen. Absent from the API, the frontend had no way to tell a user that
+    # `publc Rigidbody2o rbi` is OCR of a code editor rather than a garbled
+    # transcript — so search looked broken when it was working correctly.
+    kind: str = "transcript"
     semantic_rank: int | None = None
     lexical_rank: int | None = None
     parent_text: str | None = None
@@ -325,9 +359,17 @@ async def temporal_context(
             bundle = evidence[hit.chunk_id]
             lo, hi = hit.start_s - padding_s, hit.end_s + padding_s
 
-            frame = next(
-                (k for k in keyframes if k.start_s <= hi and k.end_s >= lo), None
-            )
+            # The frame that best *covers* the hit, not merely the first one
+            # that brushes the padded window.
+            #
+            # Taking the first match in time order picked a frame with **zero**
+            # overlap — touching the hit only at its boundary — while the frame
+            # exactly spanning it sat next in the list. Padding widens the
+            # search so a hit between two frames still finds one; it was never
+            # meant to let a neighbour outrank the frame actually on screen.
+            # The cost was a wrong thumbnail beside every result and, worse,
+            # the wrong "On screen at this moment" text in the answer prompt.
+            frame = _best_frame(keyframes, hit.start_s, hit.end_s, lo, hi)
             if frame is not None:
                 bundle.keyframe_id = frame.id
                 bundle.keyframe_time_s = frame.time_s
@@ -393,12 +435,34 @@ async def hybrid_search(
     top = sorted(fused.items(), key=lambda kv: kv[1][0], reverse=True)[:pool]
     ids = [cid for cid, _ in top]
 
+    # Guarantee the strongest exact-term matches reach the pool.
+    #
+    # Down-weighting lexical fixed one problem and created another. At weight
+    # 0.25 the *best possible* lexical-only score is 0.25/(k+1) = 0.0041, while
+    # the *worst* semantic score is 1/(k+50) = 0.0091 — so a chunk found only by
+    # lexical cannot outrank any semantic result, however exact the match.
+    #
+    # Observed: a query for "launch codes" against a clip whose transcript says
+    # "I want the launch codes, Mr. President" put that chunk at lexical rank 1,
+    # absent from semantic, and **fused rank 51** — past the pool entirely. The
+    # search returned ten unrelated OCR fragments and reported nothing relevant.
+    #
+    # Fusion still decides the *order*; this only decides who gets considered.
+    # The cross-encoder is the arbiter, and it is well placed to reject a
+    # keyword match that happens to be irrelevant.
+    seen = set(ids)
+    for chunk_id, _ in lexical[:LEXICAL_GUARANTEED_SLOTS]:
+        if chunk_id not in seen and chunk_id in fused:
+            ids.append(chunk_id)
+            seen.add(chunk_id)
+            top.append((chunk_id, fused[chunk_id]))
+
     # Hydrate children with their video title, and their parent if requested.
     parent = Chunk.__table__.alias("parent")
     stmt = (
         select(
             Chunk.id, Chunk.video_id, Video.title, Chunk.start_s, Chunk.end_s, Chunk.text,
-            parent.c.text, parent.c.start_s, parent.c.end_s,
+            parent.c.text, parent.c.start_s, parent.c.end_s, Chunk.kind,
         )
         .join(Video, Video.id == Chunk.video_id)
         .outerjoin(parent, parent.c.id == Chunk.parent_id)
@@ -425,6 +489,7 @@ async def hybrid_search(
                 parent_text=row[6] if include_parents else None,
                 parent_start_s=row[7] if include_parents else None,
                 parent_end_s=row[8] if include_parents else None,
+                kind=str(getattr(row[9], "value", row[9])),
             )
         )
 

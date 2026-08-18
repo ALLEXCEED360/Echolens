@@ -250,6 +250,7 @@ autonomy for its own sake · supporting every container format under the sun.
 | **Docker not installed** | **Blocks Phase 3** | Install before starting — SQLite has no vector search |
 | 8 GB VRAM ceiling | Limits VLM size | ≤3B captioners; never two GPU stages at once |
 | No job durability across restarts | Interrupted jobs lost | Reaped and marked failed at boot; fixed by arq + Redis |
+| ~~A failed stage could destroy the output of an earlier one~~ | — | **Cleared** — the keyframes stage reconciles on `(start_s, phash)` instead of deleting and re-inserting, so a later OCR failure no longer wipes existing OCR |
 | ~~Untested on full-length video~~ | — | **Cleared** — 6 h video verified end to end |
 | Transcript payload grows with corpus | 1.5 MB per 6 h video, unbounded | Paginate `/transcript` before multi-video views (Phase 8) |
 | Diarization accuracy | Degrades speaker queries | Soft filter, never hard `WHERE` |

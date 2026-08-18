@@ -1,5 +1,8 @@
 "use client";
 
+import { Icon } from "@/components/ui/Icon";
+import { Badge, Button, EmptyState, ErrorNote, Input, SegmentedControl, Skeleton } from "@/components/ui";
+
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { ApiError, api } from "@/lib/api";
@@ -92,50 +95,62 @@ export function SearchPanel({ videoId, collectionId, onSeek }: Props) {
         }}
         className="flex gap-2"
       >
-        <input
+        <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={videoId ? "Search this video" : "Ask across all videos…"}
-          className="min-w-0 flex-1 rounded border border-ink-700 bg-ink-900 px-3 py-2 text-sm text-ink-200 placeholder:text-ink-600"
+          icon="search"
+          aria-label="Search query"
+          placeholder={videoId ? "Search this video…" : "Search every indexed video…"}
+          className="min-w-0 flex-1"
         />
-        <button
+        <Button
           type="submit"
+          variant="primary"
           disabled={loading || query.trim().length < 2}
-          className="shrink-0 rounded border border-accent-500/40 px-3 py-2 text-xs text-accent-400 transition-colors hover:bg-accent-500/10 disabled:opacity-40"
+          className="shrink-0"
         >
-          {loading ? "…" : "Search"}
-        </button>
+          {loading ? "Searching…" : "Search"}
+        </Button>
       </form>
 
-      <div className="mt-2 flex gap-1">
-        {KIND_FILTERS.map((filter) => (
-          <button
-            key={filter.value}
-            onClick={() => {
-              setKinds(filter.value);
-              if (result) void run(query, filter.value);
-            }}
-            className={`rounded border px-2 py-0.5 text-[10px] transition-colors ${
-              kinds === filter.value
-                ? "border-accent-500/40 text-accent-400"
-                : "border-ink-700 text-ink-400 hover:text-ink-200"
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
+      <div className="mt-2.5">
+        <SegmentedControl
+          label="Filter by source"
+          value={kinds}
+          onChange={(value) => {
+            setKinds(value);
+            if (result) void run(query, value);
+          }}
+          options={KIND_FILTERS.map((f) => ({
+            value: f.value,
+            label: f.label,
+            icon: f.value === "ocr" ? "type" : f.value === "transcript" ? "quote" : undefined,
+          }))}
+        />
       </div>
 
       {error && (
-        <p className="mt-2.5 rounded border border-danger-400/30 bg-danger-400/10 px-3 py-2 text-xs text-danger-400">
-          {error}
-        </p>
+        <div className="mt-2.5">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
+      )}
+
+      {loading && !result && (
+        <div className="mt-3 space-y-2" aria-busy="true">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
       )}
 
       {result && (
         <>
-          <p className="tabular mt-3 shrink-0 text-[11px] text-ink-600">
-            {result.total} result{result.total === 1 ? "" : "s"} · {result.took_ms.toFixed(0)}ms
+          <p className="tabular mt-3 shrink-0 text-2xs text-ink-500">
+            <span className="text-ink-300">
+              {result.total} result{result.total === 1 ? "" : "s"}
+            </span>
+            <span className="mx-1.5">·</span>
+            {result.took_ms.toFixed(0)}ms
             {result.reranked && result.rerank_ms != null
               ? ` (rerank ${result.rerank_ms.toFixed(0)}ms)`
               : ""}
@@ -144,16 +159,21 @@ export function SearchPanel({ videoId, collectionId, onSeek }: Props) {
           </p>
 
           {nothingRelevant && (
-            <p className="mt-2 rounded border border-warn-400/30 bg-warn-400/5 px-3 py-2 text-[11px] text-warn-400">
-              Nothing here looks like a real answer — the closest matches scored below the
-              relevance floor. They are shown anyway, but treat them with suspicion.
+            <p className="mt-2 flex items-start gap-2 rounded-md border border-warn-400/30 bg-warn-950 px-3 py-2 text-2xs leading-4 text-warn-300">
+              <Icon name="alert" size={13} className="mt-px shrink-0" />
+              <span>
+                Nothing here looks like a real answer — the closest matches scored below the
+                relevance floor. They are shown anyway, but treat them with suspicion.
+              </span>
             </p>
           )}
 
           {result.total === 0 && (
-            <p className="mt-6 text-center text-xs text-ink-400">
-              Nothing found for “{result.query}”.
-            </p>
+            <EmptyState
+              icon="search"
+              title={`Nothing found for “${result.query}”`}
+              hint="Try fewer words, or a phrase closer to how it would actually be said aloud."
+            />
           )}
 
           <ul className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
@@ -178,21 +198,53 @@ function HitRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const promoted = hit.fused_rank != null && hit.fused_rank > 1;
+  const isOcr = hit.kind === "ocr";
 
   const body = (
     <>
       <div className="flex items-baseline gap-2.5">
-        <span className="tabular shrink-0 text-[11px] text-accent-400">
+        <span className="tabular shrink-0 text-xs text-accent-400">
           {formatTimestamp(hit.start_s)}
         </span>
+        {isOcr && (
+          <span
+            title="Read from the screen by OCR. Transcription errors are expected on low-resolution video."
+            className="shrink-0 rounded border border-warn-400/30 px-1 py-px text-2xs uppercase tracking-wide text-warn-400/80"
+          >
+            screen
+          </span>
+        )}
         {showVideo && (
-          <span className="min-w-0 flex-1 truncate text-[11px] text-ink-400">
+          <span className="min-w-0 flex-1 truncate text-xs text-ink-400">
             {hit.video_title}
           </span>
         )}
         <RetrieverTags hit={hit} promoted={promoted} />
       </div>
-      <p className="mt-1 whitespace-pre-line text-xs leading-5 text-ink-200">{hit.text}</p>
+      {/*
+        OCR text is rendered monospaced and dimmed. It is usually source code
+        photographed off a screen, and at 360p it comes back mangled
+        ("publc Rigidbody2o rbi"). Setting it in the same voice as speech makes
+        a working search look broken; setting it as machine-read code makes the
+        artefacts legible as what they are.
+      */}
+      <p
+        className={
+          isOcr
+            ? "mt-1 whitespace-pre-line break-all font-mono text-xs leading-5 text-ink-400"
+            : "mt-1 whitespace-pre-line text-xs leading-5 text-ink-200"
+        }
+      >
+        {hit.text}
+      </p>
+      {isOcr && hit.parent_text && (
+        <p className="mt-1 text-xs leading-5 text-ink-200">
+          <span className="text-ink-500">said here: </span>
+          {hit.parent_text.length > 160
+            ? `${hit.parent_text.slice(0, 160).trimEnd()}…`
+            : hit.parent_text}
+        </p>
+      )}
     </>
   );
 
@@ -209,10 +261,10 @@ function HitRow({
       )}
 
       {hit.context && (
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px]">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-2xs">
           {hit.context.topic_title && (
             <span className="text-ink-500">
-              <span className="text-ink-600">in </span>
+              <span className="text-ink-500">in </span>
               {hit.context.topic_title}
             </span>
           )}
@@ -225,7 +277,7 @@ function HitRow({
             </span>
           )}
           {hit.context.events.length > 0 && (
-            <span className="text-ink-600">{hit.context.events.length} events</span>
+            <span className="text-ink-500">{hit.context.events.length} events</span>
           )}
         </div>
       )}
@@ -234,12 +286,12 @@ function HitRow({
         <>
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="mt-1.5 text-[10px] uppercase tracking-wide text-ink-600 transition-colors hover:text-ink-400"
+            className="mt-1.5 text-2xs uppercase tracking-wide text-ink-500 transition-colors hover:text-ink-400"
           >
             {expanded ? "hide context" : "show context"}
           </button>
           {expanded && (
-            <p className="mt-1.5 border-l-2 border-ink-700 pl-2.5 text-[11px] leading-5 text-ink-400">
+            <p className="mt-1.5 border-l-2 border-ink-700 pl-2.5 text-xs leading-5 text-ink-400">
               {hit.parent_text}
             </p>
           )}
@@ -255,7 +307,7 @@ function RetrieverTags({ hit, promoted }: { hit: SearchHit; promoted: boolean })
       {promoted && (
         <span
           title={`Cross-encoder promoted this from rank ${hit.fused_rank}`}
-          className="rounded bg-accent-500/15 px-1 py-0.5 text-[9px] text-accent-400"
+          className="rounded bg-accent-500/15 px-1 py-0.5 text-2xs text-accent-400"
         >
           ↑{hit.fused_rank}
         </span>
@@ -263,7 +315,7 @@ function RetrieverTags({ hit, promoted }: { hit: SearchHit; promoted: boolean })
       {hit.rerank_score != null && (
         <span
           title="Cross-encoder relevance: above 2 is a genuine match"
-          className={`tabular text-[9px] ${
+          className={`tabular text-2xs ${
             hit.rerank_score >= 2
               ? "text-accent-400"
               : hit.rerank_score >= 0
@@ -282,7 +334,7 @@ function RetrieverTags({ hit, promoted }: { hit: SearchHit; promoted: boolean })
               ? `vector rank ${hit.semantic_rank}`
               : `keyword rank ${hit.lexical_rank}`
           }
-          className={`rounded px-1 py-0.5 text-[9px] uppercase tracking-wide ${
+          className={`rounded px-1 py-0.5 text-2xs uppercase tracking-wide ${
             r === "semantic"
               ? "bg-accent-500/15 text-accent-400"
               : "bg-warn-400/15 text-warn-400"

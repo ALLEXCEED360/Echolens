@@ -1,6 +1,28 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { SiteNav } from "@/components/SiteNav";
+
+/**
+ * Fonts are self-hosted by `next/font`, not linked from Google's CDN.
+ *
+ * Two reasons: the CDN request is a render-blocking round trip to a third
+ * party on every cold load, and `next/font` emits a matching size-adjusted
+ * fallback so the page does not reflow when the real face arrives.
+ */
+const sans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "EchoLens",
@@ -9,53 +31,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="flex min-h-screen flex-col">
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-ink-800 bg-ink-900 px-5">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="text-lg" aria-hidden>
-              🎥
-            </span>
-            <span className="text-[15px] font-semibold tracking-tight text-ink-50">EchoLens</span>
-            <span className="ml-1.5 rounded border border-ink-700 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-ink-400">
-              Phase 8
-            </span>
-          </Link>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/ask"
-              className="text-xs text-ink-400 transition-colors hover:text-ink-200"
-            >
-              Ask
-            </Link>
-            <Link
-              href="/search"
-              className="text-xs text-ink-400 transition-colors hover:text-ink-200"
-            >
-              Search
-            </Link>
-            <Link
-              href="/timeline"
-              className="text-xs text-ink-400 transition-colors hover:text-ink-200"
-            >
-              Timeline
-            </Link>
-            <Link
-              href="/collections"
-              className="text-xs text-ink-400 transition-colors hover:text-ink-200"
-            >
-              Collections
-            </Link>
-            <a
-              href="http://localhost:8000/docs"
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-ink-400 transition-colors hover:text-ink-200"
-            >
-              API docs ↗
-            </a>
-          </nav>
-        </header>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+      <body className="flex min-h-screen flex-col bg-canvas">
+        <SiteNav />
         <main className="min-h-0 flex-1">{children}</main>
       </body>
     </html>

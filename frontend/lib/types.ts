@@ -5,6 +5,8 @@ export type JobStatus = "queued" | "running" | "succeeded" | "failed" | "cancell
 export type StageStatus = "waiting" | "running" | "succeeded" | "failed" | "skipped";
 
 export interface VideoSummary {
+  /** First keyframe, when the visual stage has run. Null is a normal state. */
+  poster_url?: string | null;
   id: string;
   title: string;
   status: VideoStatus;
@@ -112,6 +114,12 @@ export interface SearchHit {
   end_s: number;
   /** The child chunk (~18s) — what matched, precise about when. */
   text: string;
+  /**
+   * "transcript" (spoken) or "ocr" (machine-read from the screen).
+   * OCR of a 360p code editor is a good *locator* but poor reading material,
+   * so the UI must label it rather than present it as if someone said it.
+   */
+  kind: string;
   score: number;
   /** "semantic", "lexical", or both. */
   matched_by: string[];

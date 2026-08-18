@@ -2,9 +2,15 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Button, EmptyState, ErrorNote, Input, PageHeader, Select, Skeleton } from "@/components/ui";
 import { ApiError, api } from "@/lib/api";
 import { formatTimestamp } from "@/lib/format";
-import type { CollectionSummary, ConceptTimeline, VideoTrack } from "@/lib/types";
+import type {
+  CollectionSummary,
+  ConceptTimeline,
+  VideoSummary,
+  VideoTrack,
+} from "@/lib/types";
 
 /**
  * Concept timeline — where an idea appears across the corpus.
@@ -16,14 +22,24 @@ import type { CollectionSummary, ConceptTimeline, VideoTrack } from "@/lib/types
  */
 export default function TimelinePage() {
   const [query, setQuery] = useState("");
-  const [collectionId, setCollectionId] = useState("");
+  /**
+   * Scope is one control over two kinds of thing, so the value carries its own
+   * type: "collection:<id>" or "video:<id>". Previously this held a bare
+   * collection id under a label reading "All videos" — which listed
+   * collections, offered no way to scope to a single video even though the API
+   * accepts one, and left the actual videos missing from a menu named after
+   * them.
+   */
+  const [scope, setScope] = useState("");
   const [collections, setCollections] = useState<CollectionSummary[]>([]);
+  const [videos, setVideos] = useState<VideoSummary[]>([]);
   const [result, setResult] = useState<ConceptTimeline | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api.listCollections().then((l) => setCollections(l.items)).catch(() => undefined);
+    api.listVideos().then((l) => setVideos(l.items)).catch(() => undefined);
   }, []);
 
   const run = useCallback(async () => {
@@ -32,9 +48,11 @@ export default function TimelinePage() {
     setLoading(true);
     setError(null);
     try {
+      const [kind, id] = scope.split(":");
       setResult(
         await api.conceptTimeline(trimmed, {
-          collectionId: collectionId || undefined,
+          collectionId: kind === "collection" ? id : undefined,
+          videoId: kind === "video" ? id : undefined,
         }),
       );
     } catch (err) {
@@ -43,69 +61,93 @@ export default function TimelinePage() {
     } finally {
       setLoading(false);
     }
-  }, [query, collectionId]);
+  }, [query, scope]);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
-      <div className="mb-5">
-        <h1 className="text-xl font-semibold tracking-tight text-ink-50">Concept timeline</h1>
-        <p className="mt-1 text-sm text-ink-400">
-          Trace where an idea appears across your videos — introduced, developed, revisited.
-        </p>
-      </div>
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <PageHeader
+        title="Concept timeline"
+        subtitle="Trace where an idea appears — introduced, developed, revisited. Ordered by time, not by rank."
+      />
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void run();
         }}
-        className="flex gap-2"
+        className="flex flex-wrap gap-2"
       >
-        <input
+        <Input
           value={query}
+          icon="timeline"
+          aria-label="Concept to trace"
           onChange={(e) => setQuery(e.target.value)}
           placeholder="e.g. colliders, prefabs, coroutines"
-          className="min-w-0 flex-1 rounded border border-ink-700 bg-ink-900 px-3 py-2 text-sm text-ink-200 placeholder:text-ink-600"
+          className="min-w-0 flex-1"
         />
-        {collections.length > 0 && (
-          <select
-            value={collectionId}
-            onChange={(e) => setCollectionId(e.target.value)}
-            className="shrink-0 rounded border border-ink-700 bg-ink-900 px-2 py-2 text-xs text-ink-300"
+        {(collections.length > 0 || videos.length > 0) && (
+          <Select
+            aria-label="Limit the trace to a collection or a single video"
+            value={scope}
+            onChange={(e) => setScope(e.target.value)}
+            className="w-full shrink-0 sm:max-w-[200px]"
           >
-            <option value="">All videos</option>
-            {collections.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <option value="">Everything</option>
+            {collections.length > 0 && (
+              <optgroup label="Collections">
+                {collections.map((c) => (
+                  <option key={c.id} value={`collection:${c.id}`}>
+                    {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {videos.length > 0 && (
+              <optgroup label="Videos">
+                {videos.map((v) => (
+                  <option key={v.id} value={`video:${v.id}`}>
+                    {v.title}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </Select>
         )}
-        <button
+        <Button
           type="submit"
+          variant="primary"
           disabled={loading || query.trim().length < 2}
-          className="shrink-0 rounded border border-accent-500/40 px-3 py-2 text-xs text-accent-400 hover:bg-accent-500/10 disabled:opacity-40"
+          className="shrink-0"
         >
-          {loading ? "…" : "Trace"}
-        </button>
+          {loading ? "Tracing…" : "Trace"}
+        </Button>
       </form>
 
       {error && (
-        <p className="mt-3 rounded border border-danger-400/30 bg-danger-400/10 px-3 py-2 text-xs text-danger-400">
-          {error}
-        </p>
+        <div className="mt-3">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
+      )}
+
+      {loading && (
+        <div className="mt-5 space-y-2" aria-busy="true">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
       )}
 
       {result && !loading && (
         <div className="mt-5">
           {result.total_occurrences === 0 ? (
-            <p className="text-xs text-ink-400">
-              No confident mentions of “{result.query}”. Either it is not covered, or it is
-              discussed in words too different for retrieval to connect.
-            </p>
+            <EmptyState
+              icon="timeline"
+              title={`No confident mentions of “${result.query}”`}
+              hint="Either the corpus does not cover it, or it is discussed in words too different for retrieval to connect. Try the wording someone would actually say."
+            />
           ) : (
             <>
-              <p className="tabular mb-4 text-[11px] text-ink-500">
+              <p className="tabular mb-4 text-xs text-ink-500">
                 {result.total_occurrences} mention
                 {result.total_occurrences === 1 ? "" : "s"} across {result.tracks.length} video
                 {result.tracks.length === 1 ? "" : "s"} · {result.took_ms.toFixed(0)}ms
@@ -148,7 +190,7 @@ function Track({ track }: { track: VideoTrack }) {
         >
           {track.video_title}
         </Link>
-        <span className="tabular shrink-0 text-[10px] text-ink-600">
+        <span className="tabular shrink-0 text-2xs text-ink-500">
           {track.occurrences.length} mention{track.occurrences.length === 1 ? "" : "s"}
         </span>
       </div>
@@ -175,19 +217,19 @@ function Track({ track }: { track: VideoTrack }) {
               href={`/videos/${track.video_id}?t=${Math.floor(o.start_s)}`}
               className="flex gap-2.5 rounded px-1.5 py-1 transition-colors hover:bg-ink-850"
             >
-              <span className="tabular shrink-0 text-[10px] leading-5 text-accent-400">
+              <span className="tabular shrink-0 text-2xs leading-5 text-accent-400">
                 {formatTimestamp(o.start_s)}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="line-clamp-1 text-[11px] leading-5 text-ink-300">
+                <span className="line-clamp-1 text-xs leading-5 text-ink-300">
                   {o.text}
                 </span>
                 {o.topic_title && (
-                  <span className="text-[10px] text-ink-600">in {o.topic_title}</span>
+                  <span className="text-2xs text-ink-500">in {o.topic_title}</span>
                 )}
               </span>
               {o.relevance != null && (
-                <span className="tabular shrink-0 text-[10px] leading-5 text-ink-600">
+                <span className="tabular shrink-0 text-2xs leading-5 text-ink-500">
                   {o.relevance.toFixed(1)}
                 </span>
               )}

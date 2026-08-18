@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { SearchPanel } from "@/components/SearchPanel";
+import { Icon } from "@/components/ui/Icon";
+import { PageHeader, Spinner } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { SearchStats } from "@/lib/types";
 
@@ -14,7 +16,13 @@ import type { SearchStats } from "@/lib/types";
  */
 export default function SearchPage() {
   return (
-    <Suspense fallback={<p className="px-6 py-8 text-xs text-ink-400">Loading…</p>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center gap-2 py-24 text-sm text-ink-400">
+          <Spinner /> Loading…
+        </div>
+      }
+    >
       <SearchPageInner />
     </Suspense>
   );
@@ -30,34 +38,42 @@ function SearchPageInner() {
   }, []);
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col px-6 py-8">
-      <div className="mb-5 shrink-0">
-        <h1 className="text-xl font-semibold tracking-tight text-ink-50">Search</h1>
-        <p className="mt-1 text-sm text-ink-400">
-          Semantic and keyword retrieval across every indexed video. Click a result to jump to
-          that moment.
-        </p>
+    <div className="mx-auto flex h-full max-w-3xl flex-col px-4 py-8 sm:px-6">
+      <div className="shrink-0">
+        <PageHeader
+          title="Search"
+          subtitle={
+            stats?.searchable ? (
+              <span className="tabular">
+                {stats.by_level.child?.embedded.toLocaleString() ?? 0} searchable moments across{" "}
+                {stats.videos_indexed} video{stats.videos_indexed === 1 ? "" : "s"}
+              </span>
+            ) : (
+              "Meaning and exact-term retrieval across every indexed video."
+            )
+          }
+        />
       </div>
 
       {stats && !stats.searchable && (
-        <div className="mb-5 rounded-lg border border-warn-400/30 bg-warn-400/5 px-4 py-3">
-          <p className="text-xs text-warn-400">
-            Nothing is indexed yet. Upload a video and click Transcribe to make it searchable.
-          </p>
-          <Link href="/" className="mt-1.5 inline-block text-xs text-ink-400 hover:text-ink-200">
-            → Go to library
-          </Link>
+        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-warn-400/30 bg-warn-950 px-4 py-3">
+          <Icon name="alert" size={15} className="mt-0.5 shrink-0 text-warn-400" />
+          <div>
+            <p className="text-sm text-warn-300">Nothing is indexed yet. Upload a video and transcribe it to make it searchable.</p>
+            <Link
+              href="/"
+              className="mt-1 inline-flex items-center gap-1 text-xs text-ink-400 transition-colors hover:text-accent-400"
+            >
+              Go to library
+              <Icon name="arrow-right" size={12} />
+            </Link>
+          </div>
         </div>
       )}
 
       <SearchPanel collectionId={collectionId} />
 
-      {stats?.searchable && (
-        <p className="tabular mt-4 shrink-0 text-[11px] text-ink-600">
-          {stats.by_level.child?.embedded.toLocaleString() ?? 0} searchable chunks across{" "}
-          {stats.videos_indexed} video{stats.videos_indexed === 1 ? "" : "s"}
-        </p>
-      )}
+
     </div>
   );
 }
