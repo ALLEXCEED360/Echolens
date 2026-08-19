@@ -19,11 +19,24 @@ import { Spinner } from "@/components/ui";
 export function EditableTitle({
   value,
   onSave,
+  variant = "page",
+  editing: editingProp,
+  onEditingChange,
 }: {
   value: string;
   onSave: (title: string) => Promise<void>;
+  /** "page" is the h1 on a video page; "row" is a line in a list. */
+  variant?: "page" | "row";
+  /** Controlled mode, for rows where a separate button starts the edit. */
+  editing?: boolean;
+  onEditingChange?: (editing: boolean) => void;
 }) {
-  const [editing, setEditing] = useState(false);
+  const [uncontrolled, setUncontrolled] = useState(false);
+  const editing = editingProp ?? uncontrolled;
+  const setEditing = (next: boolean) => {
+    setUncontrolled(next);
+    onEditingChange?.(next);
+  };
   const [draft, setDraft] = useState(value);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +89,11 @@ export function EditableTitle({
   };
 
   if (!editing) {
+    // In a row the title is part of a link to the video, so the edit is
+    // started by a separate button rather than by clicking the text.
+    if (variant === "row") {
+      return <span className="truncate text-base font-medium text-ink-50">{value}</span>;
+    }
     return (
       <button
         type="button"
@@ -88,9 +106,9 @@ export function EditableTitle({
       >
         <h1 className="truncate text-xl font-semibold tracking-tight text-ink-50">{value}</h1>
         <Icon
-          name="type"
+          name="pencil"
           size={14}
-          className="shrink-0 text-ink-700 opacity-0 transition-opacity group-hover:opacity-100"
+          className="shrink-0 text-ink-600 opacity-0 transition-opacity group-hover:opacity-100"
         />
       </button>
     );
@@ -116,7 +134,11 @@ export function EditableTitle({
           }}
           maxLength={512}
           aria-label="Video title"
-          className="min-w-0 flex-1 rounded-md border border-accent-600 bg-ink-900 px-2 py-1 text-xl font-semibold tracking-tight text-ink-50 focus:outline-none"
+          className={`min-w-0 flex-1 rounded-md border border-accent-600 bg-ink-900 px-2 py-1 text-ink-50 focus:outline-none ${
+            variant === "row"
+              ? "text-base font-medium"
+              : "text-xl font-semibold tracking-tight"
+          }`}
         />
         {saving && <Spinner size={15} className="shrink-0 text-accent-400" />}
       </div>
@@ -124,9 +146,9 @@ export function EditableTitle({
         <p role="alert" className="mt-1 text-xs text-danger-400">
           {error}
         </p>
-      ) : (
+      ) : variant === "page" ? (
         <p className="mt-1 text-2xs text-ink-500">Enter to save · Escape to cancel</p>
-      )}
+      ) : null}
     </div>
   );
 }

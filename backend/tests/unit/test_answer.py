@@ -15,6 +15,7 @@ import pytest
 from app.answer import (
     CITATION_RE,
     EvidenceItem,
+    build_evidence,
     build_prompt,
     looks_like_timestamp,
     render_evidence,
@@ -22,6 +23,9 @@ from app.answer import (
     split_sentences,
     strip_uncited,
 )
+from app.search import Hit
+
+VIDEO_ID = uuid.uuid4()
 
 
 def evidence(count: int = 3) -> list[EvidenceItem]:
@@ -273,3 +277,71 @@ class TestPrompt:
         prompt = build_prompt("How do I jump?", evidence(), multi_video=False)
         assert "How do I jump?" in prompt
         assert "[c_1]" in prompt
+
+
+class TestEvidenceDeduplication:
+    """One evidence entry per passage, not per hit.
+
+    Adjacent children usually share a parent, and expanding each of them to that
+    parent produced the same paragraph several times over. Measured on a
+    two-minute video: twelve evidence slots carried **three** distinct passages,
+    one of them repeated five times — and the model cited all five, rendering a
+    four-word claim followed by eleven timestamps.
+    """
+
+    @staticmethod
+    def hit(chunk_start: float, parent_start: float | None, parent_text: str | None):
+        return Hit(
+            chunk_id=uuid.uuid4(),
+            video_id=VIDEO_ID,
+            video_title="Match",
+            start_s=chunk_start,
+            end_s=chunk_start + 4,
+            text=f"child at {chunk_start}",
+            score=1.0,
+            parent_text=parent_text,
+            parent_start_s=parent_start,
+            parent_end_s=(parent_start + 60) if parent_start is not None else None,
+        )
+
+    def test_children_of_one_parent_yield_one_entry(self) -> None:
+        hits = [self.hit(s, 0.0, "the chant") for s in (0.0, 4.0, 16.6, 22.0, 32.7)]
+        items = build_evidence(hits)
+
+        assert len(items) == 1
+        assert items[0].text == "the chant"
+
+    def test_distinct_parents_are_all_kept(self) -> None:
+        hits = [
+            self.hit(0.0, 0.0, "first passage"),
+            self.hit(4.0, 0.0, "first passage"),
+            self.hit(70.0, 60.0, "second passage"),
+            self.hit(75.0, 60.0, "second passage"),
+            self.hit(130.0, 120.0, "third passage"),
+        ]
+        items = build_evidence(hits)
+
+        assert [i.text for i in items] == ["first passage", "second passage", "third passage"]
+
+    def test_markers_stay_contiguous(self) -> None:
+        """Gaps in the numbering would look like rejected citations."""
+        hits = [
+            self.hit(0.0, 0.0, "a"),
+            self.hit(4.0, 0.0, "a"),
+            self.hit(70.0, 60.0, "b"),
+        ]
+        assert [i.marker for i in build_evidence(hits)] == [1, 2]
+
+    def test_keeps_the_best_ranked_child_timestamp(self) -> None:
+        """Hits arrive ranked, so the first occurrence is the one to cite."""
+        hits = [self.hit(22.0, 0.0, "the chant"), self.hit(0.0, 0.0, "the chant")]
+        assert build_evidence(hits)[0].start_s == 22.0
+
+    def test_chunks_without_a_parent_are_not_collapsed(self) -> None:
+        """Distinct parentless chunks are distinct evidence, not duplicates."""
+        hits = [self.hit(0.0, None, None), self.hit(30.0, None, None)]
+        assert len(build_evidence(hits)) == 2
+
+    def test_max_items_counts_passages(self) -> None:
+        hits = [self.hit(i * 4.0, float(i // 3) * 60, f"passage {i // 3}") for i in range(12)]
+        assert len(build_evidence(hits, max_items=2)) == 2

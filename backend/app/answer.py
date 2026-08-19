@@ -143,12 +143,42 @@ def build_evidence(hits: list[Hit], *, max_items: int = 12) -> list[EvidenceItem
     is precise about *when*, but the parent carries the surrounding argument the
     model needs to actually answer. The citation still resolves to the child's
     timestamp, so precision is not lost.
+
+    **One entry per passage.** Several children usually share a parent — they
+    are adjacent moments in the same stretch of speech — and expanding each of
+    them to that parent produced the *same paragraph* several times over. On a
+    two-minute video, twelve evidence slots carried three distinct passages;
+    the model was shown one of them five times and cited all five, rendering a
+    single four-word claim with eleven timestamps after it.
+
+    Deduplicating costs nothing and fixes three things at once: the prompt
+    stops wasting slots that could hold genuinely different evidence, the model
+    is no longer nudged into over-citing by apparent corroboration that is only
+    repetition, and the reader gets a citation list they can actually use.
+
+    Hits arrive ranked, so the first occurrence of a passage is its best-scoring
+    child — which is also the timestamp worth citing.
     """
     items: list[EvidenceItem] = []
-    for index, hit in enumerate(hits[:max_items], start=1):
+    seen: set[tuple] = set()
+
+    for hit in hits:
+        if len(items) >= max_items:
+            break
+        # Identify the passage, not the hit. Parent boundaries where there is a
+        # parent; the chunk itself otherwise.
+        identity = (
+            (hit.video_id, round(hit.parent_start_s, 2))
+            if hit.parent_text and hit.parent_start_s is not None
+            else (hit.video_id, hit.chunk_id)
+        )
+        if identity in seen:
+            continue
+        seen.add(identity)
+
         items.append(
             EvidenceItem(
-                marker=index,
+                marker=len(items) + 1,
                 chunk_id=hit.chunk_id,
                 video_id=hit.video_id,
                 video_title=hit.video_title,

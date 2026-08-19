@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { EditableTitle } from "@/components/EditableTitle";
 import { UploadZone } from "@/components/UploadZone";
 import { Icon } from "@/components/ui/Icon";
 import {
   Badge,
+  ConfirmDialog,
   Dot,
   EmptyState,
   ErrorNote,
   Input,
   PageHeader,
+  IconButton,
   Skeleton,
   StatusDot,
 } from "@/components/ui";
@@ -23,6 +26,12 @@ export default function LibraryPage() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Which row is being renamed, and which is pending deletion. Held here
+  // rather than per row so there is exactly one dialog on the page instead of
+  // one per video.
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<VideoSummary | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async (q: string) => {
     try {
@@ -41,6 +50,25 @@ export default function LibraryPage() {
     const timer = setTimeout(() => void load(query), query ? 250 : 0);
     return () => clearTimeout(timer);
   }, [query, load]);
+
+  const rename = useCallback(async (id: string, title: string) => {
+    const updated = await api.updateVideo(id, { title });
+    setVideos((prev) => prev.map((v) => (v.id === id ? { ...v, title: updated.title } : v)));
+  }, []);
+
+  const remove = useCallback(async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await api.deleteVideo(pendingDelete.id);
+      setVideos((prev) => prev.filter((v) => v.id !== pendingDelete.id));
+      setPendingDelete(null);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not delete that video.");
+    } finally {
+      setDeleting(false);
+    }
+  }, [pendingDelete]);
 
   const totalHours = useMemo(
     () => videos.reduce((sum, v) => sum + (v.duration_s ?? 0), 0) / 3600,
@@ -113,14 +141,27 @@ export default function LibraryPage() {
         )}
 
         <ul className="space-y-2">
-          {videos.map((video) => (
-            <li key={video.id}>
-              <Link
-                href={`/videos/${video.id}`}
-                className="group flex gap-4 rounded-lg border border-line bg-surface p-3 transition-colors duration-150 hover:border-ink-600 hover:bg-raised"
+          {videos.map((video) => {
+            const editing = renaming === video.id;
+            return (
+              <li
+                key={video.id}
+                className="group relative flex gap-4 rounded-lg border border-line bg-surface p-3 transition-colors duration-150 hover:border-ink-600 hover:bg-raised"
               >
-                {/* Poster frame. A video library that shows no video makes the
-                    reader work out which item is which from a filename. */}
+                {/* A stretched overlay rather than a link wrapping the row.
+                    Buttons nested inside an anchor are invalid HTML and break
+                    keyboard navigation, so the navigation target is a sibling
+                    that covers the card and sits *below* the action cluster.
+                    It is withdrawn while renaming, or clicking the input would
+                    navigate away mid-edit. */}
+                {!editing && (
+                  <Link
+                    href={`/videos/${video.id}`}
+                    aria-label={`Open ${video.title}`}
+                    className="absolute inset-0 z-0 rounded-lg"
+                  />
+                )}
+
                 <div className="relative aspect-video w-[135px] shrink-0 overflow-hidden rounded-md border border-line bg-ink-950">
                   {video.poster_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -132,7 +173,7 @@ export default function LibraryPage() {
                       className="h-full w-full object-cover opacity-85 transition-opacity duration-150 group-hover:opacity-100"
                     />
                   ) : (
-                    <span className="flex h-full items-center justify-center text-ink-700">
+                    <span className="flex h-full items-center justify-center text-ink-600">
                       <Icon name="video" size={20} />
                     </span>
                   )}
@@ -143,7 +184,16 @@ export default function LibraryPage() {
 
                 <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
                   <div className="min-w-0">
-                    <p className="truncate text-base font-medium text-ink-50">{video.title}</p>
+                    {/* Above the overlay so the input is actually reachable. */}
+                    <div className="relative z-10 min-w-0">
+                      <EditableTitle
+                        value={video.title}
+                        variant="row"
+                        editing={editing}
+                        onEditingChange={(next) => setRenaming(next ? video.id : null)}
+                        onSave={(title) => rename(video.id, title)}
+                      />
+                    </div>
                     <p className="tabular mt-1 flex flex-wrap items-center gap-x-2 text-xs text-ink-400">
                       <span>{formatResolution(video.width, video.height)}</span>
                       <Dot />
@@ -163,16 +213,44 @@ export default function LibraryPage() {
                   </div>
                 </div>
 
-                <Icon
-                  name="chevron-right"
-                  size={16}
-                  className="mt-1 shrink-0 self-center text-ink-700 transition-colors group-hover:text-accent-400"
-                />
-              </Link>
-            </li>
-          ))}
+                {/* Always rendered, not hover-only: a control that exists only
+                    on hover is unreachable by touch and invisible to keyboard
+                    users. It merely brightens on hover and focus. */}
+                <div className="relative z-10 flex shrink-0 items-center gap-1 self-center">
+                  <IconButton
+                    name="pencil"
+                    label={`Rename ${video.title}`}
+                    size="sm"
+                    className="text-ink-500 opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+                    onClick={() => setRenaming(video.id)}
+                  />
+                  <IconButton
+                    name="trash"
+                    label={`Delete ${video.title}`}
+                    size="sm"
+                    className="text-ink-500 opacity-70 transition-opacity hover:text-danger-400 hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+                    onClick={() => setPendingDelete(video)}
+                  />
+                  <Icon
+                    name="chevron-right"
+                    size={16}
+                    className="ml-0.5 text-ink-600 transition-colors group-hover:text-accent-400"
+                  />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        busy={deleting}
+        title={pendingDelete ? `Delete “${pendingDelete.title}”?` : "Delete video?"}
+        body="This removes the video file, its transcript and everything indexed from it. It cannot be undone."
+        onConfirm={() => void remove()}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

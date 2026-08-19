@@ -35,6 +35,7 @@ export type IconName =
   | "quote"
   | "arrow-right"
   | "filter"
+  | "pencil"
   | "plus";
 
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -153,6 +154,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     </>
   ),
   filter: <path d="M4 6h16l-6.5 7.5V19l-3 1.5v-7L4 6Z" />,
+  pencil: (
+    <>
+      <path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+      <path d="m14.5 6.5 3 3" />
+    </>
+  ),
   plus: <path d="M12 5v14M5 12h14" />,
 };
 

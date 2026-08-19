@@ -19,6 +19,9 @@ import type { AnswerResponse, Citation } from "@/lib/types";
 
 const CITATION_RE = /\[c_(\d+)\]/g;
 
+/** Inline chips shown per claim before collapsing to a "+N" count. */
+const MAX_INLINE_CITATIONS = 3;
+
 interface Props {
   /** Restrict to one video. Omit to ask across the whole corpus. */
   videoId?: string;
@@ -244,20 +247,52 @@ function AnswerText({
   const parts: React.ReactNode[] = [];
   let cursor = 0;
   let key = 0;
+  // Consecutive markers belong to one claim. Past a few, extra timestamps stop
+  // informing and start obscuring the sentence they are attached to — the full
+  // set is listed under Evidence directly below.
+  let run = 0;
+  let hidden = 0;
 
   for (const match of text.matchAll(CITATION_RE)) {
     const index = match.index ?? 0;
-    if (index > cursor) parts.push(text.slice(cursor, index));
+    if (index > cursor) {
+      if (hidden > 0) {
+        parts.push(
+          <span key={`m${key++}`} className="mx-0.5 text-2xs text-ink-500">
+            +{hidden}
+          </span>,
+        );
+        hidden = 0;
+      }
+      run = 0;
+      parts.push(text.slice(cursor, index));
+    }
 
     const citation = byMarker.get(Number(match[1]));
     if (citation) {
-      parts.push(
-        <CitationChip key={`c${key++}`} citation={citation} onSeek={onSeek} />,
-      );
+      if (run < MAX_INLINE_CITATIONS) {
+        parts.push(
+          <CitationChip key={`c${key++}`} citation={citation} onSeek={onSeek} />,
+        );
+      } else {
+        hidden += 1;
+      }
+      run += 1;
     }
     // A marker with no matching citation was already rejected server-side;
     // drop it rather than rendering a link that goes nowhere.
     cursor = index + match[0].length;
+  }
+  if (hidden > 0) {
+    parts.push(
+      <span
+        key={`m${key++}`}
+        title="More sources for this claim — all of them are listed under Evidence"
+        className="mx-0.5 text-2xs text-ink-500"
+      >
+        +{hidden}
+      </span>,
+    );
   }
   if (cursor < text.length) parts.push(text.slice(cursor));
 
@@ -274,12 +309,27 @@ function CitationChip({
   const label = formatTimestamp(citation.start_s);
   const title = `${citation.video_title} — ${citation.text.slice(0, 160)}`;
 
+  // Chips need real separation, not a 2px margin.
+  //
+  // These are tabular digits at small size, so several in a row read as one
+  // continuous number — "00:2201:1600:04…" rather than three timestamps. A
+  // border, a wider gap and a leading marker glyph make each one a distinct
+  // object at a glance.
   const className =
-    "tabular mx-0.5 rounded bg-accent-500/15 px-1 py-px align-baseline text-2xs text-accent-400 hover:bg-accent-500/25";
+    "tabular mx-1 inline-flex items-center gap-0.5 rounded border border-accent-600/40 " +
+    "bg-accent-500/10 px-1.5 py-px align-baseline text-2xs text-accent-300 " +
+    "transition-colors hover:border-accent-500 hover:bg-accent-500/25 cursor-pointer";
+
+  const body = (
+    <>
+      <Icon name="clock" size={10} strokeWidth={2.25} className="opacity-70" />
+      {label}
+    </>
+  );
 
   return onSeek ? (
     <button onClick={() => onSeek(citation.start_s)} title={title} className={className}>
-      {label}
+      {body}
     </button>
   ) : (
     <Link
@@ -287,7 +337,7 @@ function CitationChip({
       title={title}
       className={className}
     >
-      {label}
+      {body}
     </Link>
   );
 }

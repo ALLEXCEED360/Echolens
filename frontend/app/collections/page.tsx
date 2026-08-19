@@ -122,18 +122,31 @@ export default function CollectionsPage() {
 
       <div className="grid gap-6 md:grid-cols-[280px_1fr]">
         <div>
+          {/* A visible label, not a placeholder.
+              
+              This was a bare input whose only cue was the grey word "New
+              collection" — which reads as a filter box in a sidebar, and
+              disappears the moment you type. Combined with an empty right-hand
+              pane saying "Select a collection", the page told you to pick
+              something that did not exist and never said you could make one. */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               void create();
             }}
-            className="flex gap-2"
           >
+            <label
+              htmlFor="new-collection"
+              className="mb-1.5 block text-sm font-medium text-ink-100"
+            >
+              Create a collection
+            </label>
+            <div className="flex gap-2">
             <Input
+              id="new-collection"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              aria-label="New collection name"
-              placeholder="New collection"
+              placeholder="e.g. Unity course"
               className="min-w-0 flex-1"
             />
             <Button
@@ -145,6 +158,7 @@ export default function CollectionsPage() {
             >
               Add
             </Button>
+            </div>
           </form>
 
           {loading && <p className="mt-4 text-xs text-ink-500">Loading…</p>}
@@ -176,7 +190,9 @@ export default function CollectionsPage() {
           </ul>
 
           {!loading && collections.length === 0 && (
-            <p className="mt-4 text-xs text-ink-500">No collections yet.</p>
+            <p className="mt-3 text-xs leading-5 text-ink-400">
+              None yet — name one above and press Add.
+            </p>
           )}
           {unfiled > 0 && (
             <p className="mt-3 text-2xs text-ink-500">
@@ -271,10 +287,27 @@ export default function CollectionsPage() {
                 </p>
               )}
             </>
+          ) : collections.length === 0 ? (
+            // With nothing to select, "select a collection" is an instruction
+            // that cannot be followed. Explain the feature instead.
+            <EmptyState
+              icon="layers"
+              title="No collections yet"
+              hint={
+                `A collection is a group of videos — a course, a project, a season. ` +
+                `Once you have one, Ask and Search can be scoped to just that group ` +
+                `instead of your whole library. Name one on the left to start.` +
+                (unfiled > 0
+                  ? ` You have ${unfiled} video${unfiled === 1 ? "" : "s"} ready to file.`
+                  : "")
+              }
+            />
           ) : (
-            <p className="text-xs text-ink-500">
-              Select a collection to manage its videos.
-            </p>
+            <EmptyState
+              icon="layers"
+              title="Pick a collection"
+              hint="Choose one on the left to add or remove videos, or to search and ask within it."
+            />
           )}
         </div>
       </div>
