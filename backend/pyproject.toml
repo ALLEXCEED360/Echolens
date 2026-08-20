@@ -21,6 +21,7 @@ dependencies = [
     "aiofiles>=24.1",           # async local-disk storage
     "av>=13.1",                 # PyAV: probing without an ffmpeg binary on PATH
     "numpy>=2.1",               # imported at module level by events/keyframes/benchmark
+    "pgvector>=0.3",            # the Vector column type in app/models.py
 ]
 
 [project.optional-dependencies]
@@ -29,6 +30,7 @@ dev = [
     "pytest-asyncio>=0.24",
     "httpx>=0.28",
     "ruff>=0.8",
+    "pillow>=11",               # used by the keyframe tests to assert output width
 ]
 
 # Speech recognition. Verified working on Python 3.13 + CUDA 12 (RTX 4070).

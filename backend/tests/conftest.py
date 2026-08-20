@@ -40,6 +40,46 @@ from app.db import Base, engine  # noqa: E402
 from app.main import app  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def _stub_embedder(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Never load the real embedding model in tests.
+
+    `tests/integration/test_search.py` states the rule — a 1.3 GB download per
+    run to assert that cosine distance works would be absurd, so vectors are
+    constructed by hand. Six API-level tests quietly broke it by calling the
+    endpoint, which embeds the query for real. That passed only because a
+    developer machine happens to have `sentence-transformers` installed; on a
+    clean environment it is a `ModuleNotFoundError`, which is exactly how CI
+    found it.
+
+    The stub is deterministic and content-dependent, so two different queries
+    do not collide, but nothing here depends on it being *meaningful* — these
+    tests assert scoping, status codes and response shape.
+    """
+    import hashlib
+
+    async def fake_embed_query(query: str, **_kwargs) -> list[float]:
+        digest = hashlib.sha256(query.encode()).digest()
+        vector = [0.0] * 1024
+        vector[digest[0] % 1024] = 1.0
+        return vector
+
+    # The API binds the name at import time, so patching the source module
+    # would leave the already-imported reference untouched.
+    monkeypatch.setattr("app.api.search.embed_query", fake_embed_query)
+    monkeypatch.setattr("app.pipeline.embedding.embed_query", fake_embed_query)
+
+    # The cross-encoder is the same story: a model download to assert that a
+    # 422 is a 422. `hybrid_search` imports it lazily, so patching the source
+    # module is enough. Scores descend from a value above the relevance floor,
+    # since a stub that returned nothing plausible would make every search look
+    # like a refusal.
+    async def fake_rerank(_query: str, documents: list[str]) -> list[float]:
+        return [5.0 - i * 0.1 for i in range(len(documents))]
+
+    monkeypatch.setattr("app.pipeline.rerank.rerank", fake_rerank)
+
+
 @pytest.fixture(scope="session")
 def tmp_root() -> Path:
     return _TMP
