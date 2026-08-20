@@ -13,6 +13,11 @@ const config: NextConfig = {
   // as "Cannot find module './102.js'" and requires deleting .next to recover.
   // Set NEXT_DIST_DIR to build into a separate directory instead.
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
+
+  // Dev-only badge, never present in a production build. It defaults to
+  // bottom-left, which is exactly where the library rows and the transcript
+  // list sit.
+  devIndicators: { position: "bottom-right" },
 };
 
 export default config;

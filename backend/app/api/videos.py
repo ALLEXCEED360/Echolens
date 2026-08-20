@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import uuid
 from datetime import UTC, datetime
@@ -18,7 +19,13 @@ from app.models import Keyframe, Video, VideoStatus
 from app.probe import ProbeError, probe
 from app.ranges import InvalidRange, parse_range, range_headers
 from app.schemas import VideoDetail, VideoList, VideoSummary, VideoUpdate
-from app.storage import Storage, UploadTooLarge, get_storage, make_storage_key
+from app.storage import (
+    Storage,
+    UploadTooLarge,
+    delete_derived,
+    get_storage,
+    make_storage_key,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/videos", tags=["videos"])
@@ -271,6 +278,17 @@ async def delete_video(
         await storage.delete(key)
     except Exception:  # noqa: BLE001
         logger.warning("Orphaned storage object %s", key, exc_info=True)
+
+    # Derived artefacts too — extracted audio and every keyframe JPEG.
+    #
+    # These never went through `Storage`, because the models need real
+    # filesystem paths rather than object keys, so `storage.delete` knew
+    # nothing about them. Every deleted video left its audio and its whole
+    # filmstrip behind: measured on a working install, five orphaned
+    # directories for four live videos.
+    reclaimed = await asyncio.to_thread(delete_derived, get_settings(), video_id)
+    if reclaimed:
+        logger.info("Reclaimed %.1f MB of derived files for %s", reclaimed / 1048576, video_id)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

@@ -196,6 +196,41 @@ class S3Storage:
         return None
 
 
+def derived_dir(settings: Settings, video_id) -> Path:
+    """Where a video's derived artefacts live.
+
+    Extracted audio, keyframe JPEGs — everything the pipeline produces from the
+    source but does not route through `Storage`, because the models need real
+    filesystem paths rather than object keys.
+
+    Defined once here rather than spelled out at each call site. It was written
+    inline in three places, and the consequence was that nothing deleted it:
+    `Storage.delete` removes the source file it was given a key for and knows
+    nothing about this tree, so every deleted video left its audio and its
+    entire filmstrip behind forever.
+    """
+    return settings.storage_local_path / "derived" / str(video_id)
+
+
+def delete_derived(settings: Settings, video_id) -> int:
+    """Remove a video's derived artefacts. Returns bytes reclaimed.
+
+    Best-effort, like the rest of storage cleanup: an orphaned file is
+    recoverable waste, whereas failing a delete over one leaves a row the user
+    cannot get rid of.
+    """
+    path = derived_dir(settings, video_id)
+    if not path.exists():
+        return 0
+
+    reclaimed = 0
+    with suppress_errors():
+        reclaimed = sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
+    with suppress_errors():
+        shutil.rmtree(path, ignore_errors=True)
+    return reclaimed
+
+
 class suppress_errors:
     """Context manager swallowing OSError during best-effort cleanup."""
 

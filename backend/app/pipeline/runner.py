@@ -69,7 +69,7 @@ from app.pipeline.keyframes import extract as extract_keyframes
 from app.pipeline.keyframes import scan as scan_keyframes
 from app.pipeline.ocr import is_indexable, read_frames
 from app.pipeline.transcribe import transcribe
-from app.storage import get_storage
+from app.storage import derived_dir, get_storage
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +188,7 @@ async def _stage_audio(session: AsyncSession, job_id: UUID, video: Video) -> Pat
         raise StageFailed("Non-local storage requires a temp download (not implemented)")
 
     settings = get_settings()
-    destination = settings.storage_local_path / "derived" / str(video.id) / "audio16k.wav"
+    destination = derived_dir(settings, video.id) / "audio16k.wav"
 
     loop = asyncio.get_running_loop()
     started = time.perf_counter()
@@ -348,7 +348,7 @@ async def _stage_keyframes(session: AsyncSession, job_id: UUID, video: Video) ->
     except KeyframeError as exc:
         raise StageFailed(str(exc)) from exc
 
-    frames_dir = settings.storage_local_path / "derived" / str(video.id) / "keyframes"
+    frames_dir = derived_dir(settings, video.id) / "keyframes"
     paths = await extract_keyframes(
         source, candidates, frames_dir, max_width=settings.keyframe_max_width
     )
@@ -901,7 +901,7 @@ async def run_job(job_id: UUID) -> None:
             elif StageName.TRANSCRIBE in wanted or StageName.AUDIO_EXTRACT in wanted:
                 settings = get_settings()
                 audio_path = (
-                    settings.storage_local_path / "derived" / str(video.id) / "audio16k.wav"
+                    derived_dir(settings, video.id) / "audio16k.wav"
                 )
                 # Transcription needs the WAV; extract it if this run did not,
                 # and a previous run left nothing behind.

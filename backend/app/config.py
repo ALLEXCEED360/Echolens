@@ -153,6 +153,21 @@ class Settings(BaseSettings):
     )
     log_level: str = "INFO"
 
+    @field_validator("storage_local_path", mode="after")
+    @classmethod
+    def _absolute_storage_path(cls, value: Path) -> Path:
+        """Anchor a relative storage path to the repository, not to `cwd`.
+
+        `.env` ships `./storage`, which is correct only when the process
+        happens to start at the repository root. The API does, so nothing
+        showed — but a maintenance script run from `backend/` silently looked
+        in `backend/storage`, found an empty tree, and reported that there was
+        nothing to clean while 583 MB of orphaned files sat next door. A path
+        whose meaning depends on the working directory is a trap; resolve it
+        once, here.
+        """
+        return value if value.is_absolute() else (REPO_ROOT / value).resolve()
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, v: object) -> object:

@@ -8,6 +8,11 @@ import uuid
 import pytest
 from httpx import AsyncClient
 
+from app.config import get_settings
+from app.db import SessionLocal
+from app.models import Video
+from app.storage import derived_dir
+
 
 async def _upload(client: AsyncClient, data: bytes, filename: str = "lecture.mp4") -> dict:
     resp = await client.post(
@@ -304,3 +309,84 @@ class TestRename:
     async def test_missing_video_is_404(self, client: AsyncClient) -> None:
         response = await client.patch(f"/api/videos/{uuid.uuid4()}", json={"title": "x"})
         assert response.status_code == 404
+
+
+class TestDeleteReclaimsStorage:
+    """Deleting a video must take its derived artefacts with it.
+
+    Extracted audio and keyframe JPEGs never went through `Storage` — the
+    models need real filesystem paths rather than object keys — so
+    `storage.delete` knew nothing about them and every deleted video left its
+    audio and its entire filmstrip behind. Measured on a working install: five
+    orphaned directories against four live videos, growing by one per delete.
+    """
+
+    async def test_derived_directory_is_removed(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video = (
+            await client.post("/api/videos", params={"filename": "a.mp4"}, content=sample_bytes)
+        ).json()
+        settings = get_settings()
+
+        derived = derived_dir(settings, video["id"])
+        (derived / "keyframes").mkdir(parents=True, exist_ok=True)
+        (derived / "audio16k.wav").write_bytes(b"x" * 2048)
+        (derived / "keyframes" / "0.jpg").write_bytes(b"y" * 1024)
+        assert derived.exists()
+
+        response = await client.delete(f"/api/videos/{video['id']}")
+
+        assert response.status_code == 204
+        assert not derived.exists(), "derived artefacts survived the delete"
+
+    async def test_source_file_is_removed_too(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video = (
+            await client.post("/api/videos", params={"filename": "b.mp4"}, content=sample_bytes)
+        ).json()
+        # `storage_key` is deliberately absent from the API — it is an internal
+        # layout detail — so read it from the row.
+        async with SessionLocal() as session:
+            row = await session.get(Video, uuid.UUID(video["id"]))
+            source = get_settings().storage_local_path / row.storage_key
+        assert source.exists()
+
+        await client.delete(f"/api/videos/{video['id']}")
+
+        assert not source.exists()
+
+    async def test_delete_succeeds_when_nothing_was_derived(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        """A video deleted before processing has no derived directory at all."""
+        video = (
+            await client.post("/api/videos", params={"filename": "c.mp4"}, content=sample_bytes)
+        ).json()
+
+        response = await client.delete(f"/api/videos/{video['id']}")
+
+        assert response.status_code == 204
+
+    async def test_one_videos_delete_leaves_another_alone(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        """The obvious way to get this wrong is to clear the whole tree."""
+        keep = (
+            await client.post("/api/videos", params={"filename": "keep.mp4"}, content=sample_bytes)
+        ).json()
+        drop = (
+            await client.post("/api/videos", params={"filename": "drop.mp4"}, content=sample_bytes)
+        ).json()
+
+        settings = get_settings()
+        for v in (keep, drop):
+            d = derived_dir(settings, v["id"])
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "audio16k.wav").write_bytes(b"x")
+
+        await client.delete(f"/api/videos/{drop['id']}")
+
+        assert derived_dir(settings, keep["id"]).exists()
+        assert not derived_dir(settings, drop["id"]).exists()

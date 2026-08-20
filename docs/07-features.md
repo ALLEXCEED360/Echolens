@@ -62,6 +62,19 @@ curl -s -o /dev/null -D - -H "Range: bytes=0-99" http://localhost:8000/api/video
 Expect `HTTP/1.1 206 Partial Content` and `Content-Range: bytes 0-99/<size>`.
 A `200` here means seeking is silently broken.
 
+**Verify — deleting reclaims disk.** A deleted video takes its source file
+*and* its derived artefacts — extracted audio, every keyframe JPEG — with it.
+Those never went through the storage layer, because the models need real
+filesystem paths, so nothing used to remove them: five orphaned directories had
+accumulated against four live videos.
+
+Reclaim anything orphaned by an older build, or by a crash mid-delete. It
+reports and changes nothing unless you pass `--apply`:
+
+```bash
+python backend/scripts/prune_storage.py
+```
+
 **Verify — bad input is refused early.** Upload a `.txt`, or a `.mp4` containing
 junk. Expect `415` and `422` respectively, not a failure three pipeline stages
 later.

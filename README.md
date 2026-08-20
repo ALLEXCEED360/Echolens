@@ -159,3 +159,14 @@ storage/            Local object store (gitignored) — S3 stand-in for dev
 - [04 — Roadmap](docs/04-roadmap.md) — phases with honest estimates
 - [05 — Environment](docs/05-environment.md) — machine-specific setup and constraints
 - [06 — Benchmarks](docs/06-benchmarks.md) — measured results: retrieval latency, batched ASR
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE). Use it, change it, ship it; keep the copyright
+notice.
+
+The corpus used to produce the numbers in [docs/08-evaluation.md](docs/08-evaluation.md)
+is not included and is not covered by this licence: the videos belong to their
+respective creators.
