@@ -1,4 +1,5 @@
 import type {
+  TranscriptFormat,
   AnswerResponse,
   CollectionDetail,
   CollectionList,
@@ -95,6 +96,16 @@ export const api = {
   },
 
   getTranscript: (id: string) => request<Transcript>(`/api/videos/${id}/transcript`),
+
+  /**
+   * A direct download URL, not a fetch.
+   *
+   * The browser handles the transfer, so a 5,000-segment transcript never
+   * passes through JavaScript memory, and the filename comes from the
+   * server's `Content-Disposition` rather than being guessed here.
+   */
+  transcriptExportUrl: (id: string, format: TranscriptFormat) =>
+    `${API_URL}/api/videos/${id}/transcript/export?format=${format}`,
 
   searchTranscripts: (q: string, videoId?: string) => {
     const query = new URLSearchParams({ q });

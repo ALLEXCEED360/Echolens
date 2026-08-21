@@ -104,6 +104,7 @@ async def ask(
                 start_s=c.start_s,
                 end_s=c.end_s,
                 text=c.text,
+                quote=c.quote or c.text,
             )
             for c in result.citations
         ],
@@ -116,6 +117,7 @@ async def ask(
                 start_s=e.start_s,
                 end_s=e.end_s,
                 text=e.text,
+                quote=e.quote or e.text,
                 on_screen_text=e.on_screen_text,
                 topic_title=e.topic_title,
                 relevance=e.relevance,

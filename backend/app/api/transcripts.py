@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import uuid
 from typing import Literal
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import Settings, get_settings
 from app.db import get_session
+from app.export import MEDIA_TYPES, ExportSegment, render, safe_filename
 from app.models import (
     JobStage,
     JobStatus,
@@ -193,6 +196,78 @@ async def get_transcript(
         total=len(rows),
         model=rows[0].model if rows else None,
         speech_duration_s=round(speech, 2),
+    )
+
+
+@router.get(
+    "/videos/{video_id}/transcript/export",
+    summary="Download the transcript as subtitles, text or Markdown",
+    response_class=Response,
+)
+async def export_transcript(
+    video_id: uuid.UUID,
+    fmt: Literal["srt", "vtt", "txt", "md"] = Query(
+        "srt",
+        alias="format",
+        description=(
+            "srt/vtt for subtitles, txt for prose, md for timestamped Markdown "
+            "whose timestamps link back to the moment."
+        ),
+    ),
+    session: AsyncSession = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+) -> Response:
+    """Hand the transcript over as a file.
+
+    Until this existed, a 5,765-segment transcript could only be read inside
+    this application — not turned into subtitles, pasted into notes, or diffed
+    against a corrected version. The pipeline produced it; there was no door.
+    """
+    video = await session.get(Video, video_id)
+    if video is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Video not found")
+
+    rows = (
+        await session.execute(
+            select(TranscriptSegment)
+            .where(TranscriptSegment.video_id == video_id)
+            .order_by(TranscriptSegment.position)
+        )
+    ).scalars().all()
+
+    if not rows:
+        # A 404 would say "no such video", which is a different problem with a
+        # different fix. This one is "transcribe it first".
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "This video has no transcript yet. Run the speech stage first.",
+        )
+
+    body = render(
+        fmt,
+        [
+            ExportSegment(
+                start_s=r.start_s, end_s=r.end_s, text=r.text, speaker_id=r.speaker_id
+            )
+            for r in rows
+        ],
+        title=video.title,
+        video_id=str(video_id),
+        base_url=settings.app_base_url,
+    )
+    filename = safe_filename(video.title, fmt)
+
+    return Response(
+        content=body,
+        media_type=f"{MEDIA_TYPES[fmt]}; charset=utf-8",
+        headers={
+            # RFC 5987 form as well as the plain one: titles are user-supplied
+            # and routinely non-ASCII, which a bare filename= cannot carry.
+            "Content-Disposition": (
+                f'attachment; filename="{filename.encode("ascii", "replace").decode()}"; '
+                f"filename*=UTF-8''{quote(filename)}"
+            )
+        },
     )
 
 

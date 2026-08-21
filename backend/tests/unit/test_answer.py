@@ -345,3 +345,45 @@ class TestEvidenceDeduplication:
     def test_max_items_counts_passages(self) -> None:
         hits = [self.hit(i * 4.0, float(i // 3) * 60, f"passage {i // 3}") for i in range(12)]
         assert len(build_evidence(hits, max_items=2)) == 2
+
+
+class TestQuotableText:
+    """`quote` is what the timestamps actually describe.
+
+    Evidence carries two spans that are easy to confuse. `text` is the parent
+    passage — up to a minute of surrounding argument, given to the model so it
+    can answer rather than guess. `start_s`/`end_s` are the *child's*, because
+    that is the moment worth citing.
+
+    So `text` and the timestamps describe different stretches of video. Anything
+    that quotes a moment — the copy-citation control, and anything built on it
+    later — must use `quote`, or it renders a paragraph under a timestamp that
+    points at one line inside it.
+    """
+
+    hit = staticmethod(TestEvidenceDeduplication.hit)
+
+    def test_quote_is_the_child_not_the_parent(self) -> None:
+        item = build_evidence([self.hit(22.0, 0.0, "a minute of surrounding argument")])[0]
+
+        assert item.quote == "child at 22.0"
+        assert item.text == "a minute of surrounding argument"
+
+    def test_quote_matches_the_span_the_timestamps_name(self) -> None:
+        """The invariant, stated directly."""
+        hits = [self.hit(s, 0.0, "the whole passage") for s in (0.0, 22.0, 44.0)]
+        for item in build_evidence(hits):
+            assert item.quote == f"child at {item.start_s}"
+
+    def test_quote_falls_back_to_the_chunk_without_a_parent(self) -> None:
+        item = build_evidence([self.hit(8.0, None, None)])[0]
+        assert item.quote == item.text == "child at 8.0"
+
+    def test_quote_survives_onto_the_citation(self) -> None:
+        """Citations are built from evidence; the field has to make the trip."""
+        items = build_evidence([self.hit(22.0, 0.0, "a minute of surrounding argument")])
+        cleaned, citations, fabricated = resolve_citations("A claim [c_1].", items)
+
+        assert fabricated == []
+        assert citations[0].quote == "child at 22.0"
+        assert citations[0].text == "a minute of surrounding argument"

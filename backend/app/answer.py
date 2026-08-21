@@ -99,6 +99,9 @@ class EvidenceItem:
     start_s: float
     end_s: float
     text: str
+    # The child chunk — what was said in the span the timestamps describe.
+    # `text` above is the wider parent passage the model reads. See `Citation`.
+    quote: str = ""
     kind: str = "transcript"
     on_screen_text: str | None = None
     topic_title: str | None = None
@@ -116,6 +119,14 @@ class Citation:
     start_s: float
     end_s: float
     text: str
+    # What was actually said between `start_s` and `end_s`.
+    #
+    # `text` is the *parent* passage — roughly a minute of surrounding argument,
+    # included so the model can answer rather than guess. But the timestamps
+    # are the child's, so `text` and `start_s` describe different spans. Quoting
+    # `text` under that timestamp produces a paragraph attributed to a moment
+    # inside it, which is a misquote however you look at it.
+    quote: str = ""
 
 
 @dataclass
@@ -185,6 +196,7 @@ def build_evidence(hits: list[Hit], *, max_items: int = 12) -> list[EvidenceItem
                 start_s=hit.start_s,
                 end_s=hit.end_s,
                 text=(hit.parent_text or hit.text).strip(),
+                quote=hit.text.strip(),
                 on_screen_text=hit.context.on_screen_text if hit.context else None,
                 topic_title=hit.context.topic_title if hit.context else None,
                 relevance=hit.rerank_score,
@@ -253,6 +265,7 @@ def resolve_citations(
                     start_s=item.start_s,
                     end_s=item.end_s,
                     text=item.text,
+                    quote=item.quote,
                 )
             kept.append(f"[c_{marker}]")
 

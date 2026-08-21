@@ -160,12 +160,46 @@ prompt made the model transcribe *the prompt itself* — the tail came back as
 "Harkov, Vorshevsky, Modern Warfare".
 
 **Invented lines at the end of noisy audio** are dropped automatically. Whisper
-falls into repetition loops there and flags them with a raised
-`no_speech_prob`, which the pipeline now acts on: across 5,765 segments of a
-real tutorial genuine speech never exceeded **0.125**, while every hallucinated
-tail segment scored **0.30 or higher**. The threshold sits at 0.25, and the
-count is reported as `dropped_non_speech` in the stage metrics rather than
-filtered silently.
+falls into repetition loops there, emitting the same sentence several times in
+a row, and that repetition is what the pipeline detects — identical consecutive
+lines are essentially never real speech. The count is reported as
+`dropped_repeats` in the stage metrics rather than filtered silently.
+
+This deliberately *replaced* a `no_speech_prob` threshold. That statistic was
+calibrated on clean audio with VAD on, where genuine speech never exceeded
+0.125 — but on VAD-off game audio real dialogue scores 0.44 while
+hallucinations score 0.30, so the threshold ran backwards and deleted five real
+lines, reducing one video to nothing.
+
+### Getting the transcript out
+
+Every format is one endpoint, and the **Export** button sits in the transcript
+panel header:
+
+```bash
+curl -OJ "http://localhost:8000/api/videos/{id}/transcript/export?format=srt"
+```
+
+| `format` | For |
+| --- | --- |
+| `srt` | Subtitles — VLC, Premiere, YouTube. Milliseconds after a **comma**. |
+| `vtt` | Web subtitles for an HTML `<track>`. Milliseconds after a **dot**. |
+| `md` | Timestamped notes; each stamp deep-links back to the moment. |
+| `txt` | Prose, no timestamps. |
+
+The download name comes from the video's title, sanitised, and is sent twice —
+plain `filename=` plus RFC 5987 `filename*=` — so a title like *Café München*
+survives. A video with no transcript yet returns **409**, not 404: the video
+exists, it simply has not been through the speech stage.
+
+Deep links in the Markdown export point at `ECHOLENS_APP_BASE_URL`
+(default `http://localhost:3000`). Set it if the frontend lives elsewhere,
+or the links will be exported pointing at a machine only you can reach.
+
+**Verify:** export the Unity course as SRT and check the cue count matches the
+segment count — 5,765 either way — with indices running 1…n and no gaps. A
+blank line inside a caption would silently split a cue and misnumber every
+later one, which is the failure this format punishes hardest.
 
 ---
 
@@ -356,6 +390,56 @@ curl -s -X POST http://localhost:8000/api/ask -H "content-type: application/json
 
 Expect `refused: true`, a reason naming the score, and **~0.5 s** — the model is
 never called, so it costs no quota.
+
+### Taking a citation with you
+
+Every quoted moment — an answer's evidence row, a search hit, a transcript line
+— carries a copy control that appears on hover. It puts one line on the
+clipboard:
+
+```
+Well, rigidBody is a component on the game object. And for that, we have special functionality.
+```
+
+The shape lives in `frontend/lib/citation.ts` and nowhere else. Three surfaces
+quote a moment, and a citation whose format depends on which one it came from
+is not a citation.
+
+**What gets quoted is `quote`, never `text`.** Evidence carries two spans and
+they are easy to confuse:
+
+| Field | Span | For |
+| --- | --- | --- |
+| `text` | the parent passage, up to a minute either side | the model, so it can answer rather than guess |
+| `quote` | the child chunk — exactly `start_s`…`end_s` | quoting, and for the two-line preview on the row |
+
+Copying `text` was the first version of this feature and it was wrong twice
+over. It pasted ~650 characters where the row previewed two lines, and because
+a parent generally *starts before* the child inside it, the pasted passage began
+at a different point in the video from the timestamp printed underneath it — a
+misattribution, not merely a long quote. `TestQuotableText` in
+`tests/unit/test_answer.py` pins the invariant: for every evidence item,
+`quote` is the text of the span its own timestamps name.
+
+**The clipboard gets the line and nothing else.** No quotation marks, no
+title, no timestamp, no URL. Three revisions got here, and each removal was
+the same lesson: whoever pastes a quote already knows where they got it.
+The deep link went first — on localhost it is dead to every reader but the
+machine that produced it. The attribution followed, and the quotation marks
+with it, since they existed only to separate the quote from the attribution.
+
+It is still not truncated. A line silently cut at 160 characters is a
+misquote and whoever pastes it cannot tell that it happened; the child chunk
+is already the right unit at roughly 17 seconds of speech.
+
+The clipboard API is refused outside a secure context, which includes serving
+this app over plain HTTP to anything but localhost. There is an `execCommand`
+fallback for that case, and if both fail the button says so rather than
+appearing to work.
+
+**Verify:** hover any evidence row under an answer, click the copy icon, and
+paste. You should get one line of prose — and it must be **the same text the
+row previews**, not the passage around it.
 
 **Verify — invented citations cannot reach you.** Covered by
 `tests/unit/test_answer.py`, 45 cases including marker `0`, `[c_-1]`, markers

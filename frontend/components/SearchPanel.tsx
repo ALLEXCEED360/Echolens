@@ -1,5 +1,6 @@
 "use client";
 
+import { CopyCitation } from "@/components/CopyCitation";
 import { Icon } from "@/components/ui/Icon";
 import { Badge, Button, EmptyState, ErrorNote, Input, SegmentedControl, Skeleton } from "@/components/ui";
 
@@ -249,16 +250,36 @@ function HitRow({
   );
 
   return (
-    <li className="rounded-lg border border-ink-800 bg-ink-900 px-3 py-2.5 transition-colors hover:border-ink-600">
-      {onSeek ? (
-        <button onClick={() => onSeek(hit.start_s)} className="block w-full text-left">
-          {body}
-        </button>
-      ) : (
-        <Link href={`/videos/${hit.video_id}?t=${Math.floor(hit.start_s)}`} className="block">
-          {body}
-        </Link>
-      )}
+    <li className="group rounded-lg border border-ink-800 bg-ink-900 py-2.5 pl-3 pr-2 transition-colors hover:border-ink-600">
+      <div className="flex items-start gap-1">
+        {onSeek ? (
+          <button
+            onClick={() => onSeek(hit.start_s)}
+            className="block min-w-0 flex-1 text-left"
+          >
+            {body}
+          </button>
+        ) : (
+          <Link
+            href={`/videos/${hit.video_id}?t=${Math.floor(hit.start_s)}`}
+            className="block min-w-0 flex-1"
+          >
+            {body}
+          </Link>
+        )}
+        <CopyCitation
+          source={{
+            // An OCR hit quotes the screen, and a hit that carries its spoken
+            // parent quotes that instead — the matched fragment on its own is
+            // usually too short to make sense out of context.
+            text: isOcr && hit.parent_text ? hit.parent_text : hit.text,
+            videoTitle: hit.video_title,
+            videoId: hit.video_id,
+            startS: hit.start_s,
+            kind: isOcr && !hit.parent_text ? "ocr" : "speech",
+          }}
+        />
+      </div>
 
       {hit.context && (
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-2xs">

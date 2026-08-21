@@ -261,3 +261,108 @@ async def _seed_transcript(video_id: uuid.UUID) -> None:
             ]
         )
         await session.commit()
+
+
+class TestTranscriptExport:
+    """Downloading the transcript.
+
+    Everything the pipeline produced used to be reachable only through this
+    application's own UI. The formats themselves are covered by
+    `tests/unit/test_export.py`; what matters here is that the endpoint returns
+    a real download, refuses sensibly, and does not confuse "no such video"
+    with "not transcribed yet".
+    """
+
+    async def _seed(self, client: AsyncClient, sample_bytes: bytes) -> str:
+        video = (
+            await client.post("/api/videos", params={"filename": "talk.mp4"}, content=sample_bytes)
+        ).json()
+        async with SessionLocal() as session:
+            session.add_all(
+                TranscriptSegment(
+                    video_id=uuid.UUID(video["id"]),
+                    position=i,
+                    start_s=float(i * 3),
+                    end_s=float(i * 3 + 2.5),
+                    text=text,
+                    model="test",
+                )
+                for i, text in enumerate(["First line here", "Second line here"])
+            )
+            await session.commit()
+        return video["id"]
+
+    @pytest.mark.parametrize(
+        ("fmt", "marker"),
+        [
+            ("srt", "00:00:00,000 --> 00:00:02,500"),
+            ("vtt", "WEBVTT"),
+            ("txt", "First line here"),
+            ("md", "`00:00:00`"),
+        ],
+    )
+    async def test_each_format(
+        self, client: AsyncClient, sample_bytes: bytes, fmt: str, marker: str
+    ) -> None:
+        video_id = await self._seed(client, sample_bytes)
+
+        response = await client.get(
+            f"/api/videos/{video_id}/transcript/export", params={"format": fmt}
+        )
+
+        assert response.status_code == 200
+        assert marker in response.text
+
+    async def test_served_as_a_download(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        """Without `attachment`, the browser renders it instead of saving."""
+        video_id = await self._seed(client, sample_bytes)
+        response = await client.get(f"/api/videos/{video_id}/transcript/export")
+
+        disposition = response.headers["content-disposition"]
+        assert disposition.startswith("attachment;")
+        assert "talk.srt" in disposition
+
+    async def test_filename_survives_a_non_ascii_title(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        """A bare `filename=` cannot carry non-ASCII, so RFC 5987 is required."""
+        video_id = await self._seed(client, sample_bytes)
+        await client.patch(f"/api/videos/{video_id}", json={"title": "Café München"})
+
+        response = await client.get(f"/api/videos/{video_id}/transcript/export")
+
+        assert response.status_code == 200
+        assert "filename*=UTF-8''" in response.headers["content-disposition"]
+
+    async def test_defaults_to_srt(self, client: AsyncClient, sample_bytes: bytes) -> None:
+        video_id = await self._seed(client, sample_bytes)
+        response = await client.get(f"/api/videos/{video_id}/transcript/export")
+        assert "x-subrip" in response.headers["content-type"]
+
+    async def test_untranscribed_video_is_409_not_404(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        """404 would mean "no such video", which has a different fix."""
+        video = (
+            await client.post("/api/videos", params={"filename": "bare.mp4"}, content=sample_bytes)
+        ).json()
+
+        response = await client.get(f"/api/videos/{video['id']}/transcript/export")
+
+        assert response.status_code == 409
+        assert "transcript" in response.json()["detail"].lower()
+
+    async def test_missing_video_is_404(self, client: AsyncClient) -> None:
+        response = await client.get(f"/api/videos/{uuid.uuid4()}/transcript/export")
+        assert response.status_code == 404
+
+    async def test_unknown_format_is_rejected(
+        self, client: AsyncClient, sample_bytes: bytes
+    ) -> None:
+        video_id = await self._seed(client, sample_bytes)
+        response = await client.get(
+            f"/api/videos/{video_id}/transcript/export", params={"format": "docx"}
+        )
+        assert response.status_code == 422

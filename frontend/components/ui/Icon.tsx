@@ -20,6 +20,7 @@ export type IconName =
   | "play"
   | "pause"
   | "upload"
+  | "download"
   | "trash"
   | "refresh"
   | "chevron-right"
@@ -33,6 +34,7 @@ export type IconName =
   | "type"
   | "image"
   | "quote"
+  | "copy"
   | "arrow-right"
   | "filter"
   | "pencil"
@@ -80,6 +82,13 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M12 16V4" />
       <path d="m7.5 8.5 4.5-4.5 4.5 4.5" />
+      <path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 4v12" />
+      <path d="m7.5 11.5 4.5 4.5 4.5-4.5" />
       <path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" />
     </>
   ),
@@ -145,6 +154,12 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M9 6H5.5A1.5 1.5 0 0 0 4 7.5V11a1.5 1.5 0 0 0 1.5 1.5H8V15a3 3 0 0 1-3 3" />
       <path d="M20 6h-3.5A1.5 1.5 0 0 0 15 7.5V11a1.5 1.5 0 0 0 1.5 1.5H19V15a3 3 0 0 1-3 3" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5.5 15H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h8.5A1.5 1.5 0 0 1 15 5v.5" />
     </>
   ),
   "arrow-right": (

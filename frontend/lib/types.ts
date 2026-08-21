@@ -81,6 +81,9 @@ export interface Transcript {
   speech_duration_s: number;
 }
 
+/** Mirrors `FORMATS` in `backend/app/export.py`. */
+export type TranscriptFormat = "srt" | "vtt" | "txt" | "md";
+
 export interface TranscriptSearchHit {
   id: string;
   video_id: string;
@@ -239,7 +242,10 @@ export interface Citation {
   video_title: string;
   start_s: number;
   end_s: number;
+  /** The wider passage the model read — up to a minute either side. */
   text: string;
+  /** Only what was said between `start_s` and `end_s`. Quote this, not `text`. */
+  quote: string;
 }
 
 export interface AnswerEvidence extends Citation {

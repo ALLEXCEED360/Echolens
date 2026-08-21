@@ -12,6 +12,7 @@ import { ProcessingBanner } from "@/components/ProcessingBanner";
 import { SearchPanel } from "@/components/SearchPanel";
 import { Timeline } from "@/components/Timeline";
 import { TopicList } from "@/components/TopicList";
+import { ExportMenu } from "@/components/ExportMenu";
 import { TranscriptPanel } from "@/components/TranscriptPanel";
 import { SeekBar, VideoPlayer, type VideoPlayerHandle } from "@/components/VideoPlayer";
 import { Icon } from "@/components/ui/Icon";
@@ -372,6 +373,7 @@ export default function VideoPage() {
                 {Math.round(speechCoverage * 100)}% speech
               </Badge>
             )}
+            {indexed && segments.length > 0 && <ExportMenu videoId={id} />}
           </PanelHeader>
 
           {sparseSpeech && (
@@ -388,7 +390,12 @@ export default function VideoPage() {
             </p>
           )}
           {indexed ? (
-            <TranscriptPanel segments={segments} currentTime={currentTime} onSeek={seek} />
+            <TranscriptPanel
+              segments={segments}
+              currentTime={currentTime}
+              onSeek={seek}
+              video={{ id: video.id, title: video.title }}
+            />
           ) : active ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 py-10 text-center">
               <Spinner size={18} className="text-accent-400" />

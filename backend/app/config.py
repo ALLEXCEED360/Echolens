@@ -152,6 +152,10 @@ class Settings(BaseSettings):
         default_factory=lambda: ["http://localhost:3000"]
     )
     log_level: str = "INFO"
+    # Where this app is reachable in a browser. Used to build the deep links in
+    # a Markdown transcript export — the thing that makes an exported line
+    # still one click from the footage it came from.
+    app_base_url: str = "http://localhost:3000"
 
     @field_validator("storage_local_path", mode="after")
     @classmethod

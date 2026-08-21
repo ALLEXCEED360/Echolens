@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";
 import { Button, ErrorNote, Skeleton } from "@/components/ui";
+import { CopyCitation } from "@/components/CopyCitation";
 import { Icon } from "@/components/ui/Icon";
 import { ApiError, api } from "@/lib/api";
 import { formatTimestamp } from "@/lib/format";
@@ -202,7 +203,7 @@ export function AskPanel({ videoId, collectionId, onSeek }: Props) {
               {result.evidence.map((e) => (
                 <li
                   key={e.marker}
-                  className="rounded border border-ink-800 bg-ink-950 px-2.5 py-1.5"
+                  className="group rounded border border-ink-800 bg-ink-950 px-2.5 py-1.5"
                 >
                   <div className="flex items-baseline gap-2">
                     <span className="tabular shrink-0 text-2xs text-ink-500">
@@ -219,9 +220,18 @@ export function AskPanel({ videoId, collectionId, onSeek }: Props) {
                         {e.relevance.toFixed(1)}
                       </span>
                     )}
+                    <CopyCitation
+                      className={e.relevance == null ? "ml-auto" : ""}
+                      source={{
+                        text: e.quote || e.text,
+                        videoTitle: e.video_title,
+                        videoId: e.video_id,
+                        startS: e.start_s,
+                      }}
+                    />
                   </div>
                   <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-ink-400">
-                    {e.text}
+                    {e.quote || e.text}
                   </p>
                 </li>
               ))}
@@ -361,23 +371,39 @@ function CitationRow({
           <span className="truncate text-2xs text-ink-500">{citation.video_title}</span>
         )}
       </div>
-      <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-ink-400">{citation.text}</p>
+      <p className="mt-0.5 line-clamp-2 text-xs leading-4 text-ink-400">
+        {citation.quote || citation.text}
+      </p>
     </>
   );
 
-  const className =
-    "block w-full rounded border border-ink-800 bg-ink-900 px-2.5 py-1.5 text-left transition-colors hover:border-ink-600";
+  const className = "block min-w-0 flex-1 text-left";
 
-  return onSeek ? (
-    <button onClick={() => onSeek(citation.start_s)} className={className}>
-      {body}
-    </button>
-  ) : (
-    <Link
-      href={`/videos/${citation.video_id}?t=${Math.floor(citation.start_s)}`}
-      className={className}
-    >
-      {body}
-    </Link>
+  return (
+    <div className="group flex items-start gap-1 rounded border border-ink-800 bg-ink-900 py-1.5 pl-2.5 pr-1 transition-colors hover:border-ink-600">
+      {onSeek ? (
+        <button onClick={() => onSeek(citation.start_s)} className={className}>
+          {body}
+        </button>
+      ) : (
+        <Link
+          href={`/videos/${citation.video_id}?t=${Math.floor(citation.start_s)}`}
+          className={className}
+        >
+          {body}
+        </Link>
+      )}
+      <CopyCitation
+        source={{
+          // `quote`, not `text`: the latter is the parent passage the model
+          // read, which can run a minute either side of this timestamp.
+          // Copying it attributes a paragraph to a moment inside it.
+          text: citation.quote || citation.text,
+          videoTitle: citation.video_title,
+          videoId: citation.video_id,
+          startS: citation.start_s,
+        }}
+      />
+    </div>
   );
 }

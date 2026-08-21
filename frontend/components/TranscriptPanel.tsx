@@ -2,6 +2,7 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CopyCitation } from "@/components/CopyCitation";
 import { Icon } from "@/components/ui/Icon";
 import { Input } from "@/components/ui";
 import { formatTimestamp } from "@/lib/format";
@@ -27,6 +28,8 @@ interface Props {
   segments: TranscriptSegment[];
   currentTime: number;
   onSeek: (seconds: number) => void;
+  /** Enables per-line "copy citation". Omit and the copy control is hidden. */
+  video?: { id: string; title: string };
 }
 
 /** Index of the segment covering `t`. Assumes ascending, non-overlapping starts. */
@@ -51,7 +54,7 @@ function findActive(segments: TranscriptSegment[], t: number): number {
   return t <= segments[found].end_s + 0.5 ? found : -1;
 }
 
-export function TranscriptPanel({ segments, currentTime, onSeek }: Props) {
+export function TranscriptPanel({ segments, currentTime, onSeek, video }: Props) {
   const [filter, setFilter] = useState("");
   const [follow, setFollow] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -171,11 +174,17 @@ export function TranscriptPanel({ segments, currentTime, onSeek }: Props) {
                 className="transcript-row absolute left-0 top-0 w-full"
                 style={{ transform: `translateY(${item.start}px)` }}
               >
-                <button
-                  onClick={() => onSeek(segment.start_s)}
-                  className={`relative flex w-full cursor-pointer gap-3 rounded-md py-1.5 pl-3 pr-2 text-left transition-colors duration-150 ${
+                {/* A row, not a button: the copy control has to live inside it
+                    and a button cannot nest. The seek target is the inner
+                    button, which still fills the row. */}
+                <div
+                  className={`group relative flex w-full items-start gap-1 rounded-md pr-1 transition-colors duration-150 ${
                     active ? "bg-accent-950" : "hover:bg-ink-850"
                   }`}
+                >
+                <button
+                  onClick={() => onSeek(segment.start_s)}
+                  className="relative flex min-w-0 flex-1 cursor-pointer gap-3 rounded-md py-1.5 pl-3 pr-1 text-left"
                 >
                   {/* The spoken line you are on gets a rail, not just a tint —
                       a background wash alone is easy to lose while scrolling. */}
@@ -200,6 +209,19 @@ export function TranscriptPanel({ segments, currentTime, onSeek }: Props) {
                     {needle ? highlight(segment.text, needle) : segment.text}
                   </span>
                 </button>
+                {video && (
+                  <CopyCitation
+                    className="mt-1.5"
+                    source={{
+                      text: segment.text,
+                      videoTitle: video.title,
+                      videoId: video.id,
+                      startS: segment.start_s,
+                    }}
+                    label="Copy this line"
+                  />
+                )}
+                </div>
               </div>
             );
           })}

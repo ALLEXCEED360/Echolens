@@ -351,7 +351,11 @@ class CitationOut(BaseModel):
     video_title: str
     start_s: float
     end_s: float
+    # The wider passage the model was given, for reading in context.
     text: str
+    # Just what was said between `start_s` and `end_s`. Quote this — `text` can
+    # span a minute either side, so attributing it to `start_s` is a misquote.
+    quote: str = ""
 
 
 class EvidenceOut(BaseModel):
@@ -362,6 +366,7 @@ class EvidenceOut(BaseModel):
     start_s: float
     end_s: float
     text: str
+    quote: str = ""
     on_screen_text: str | None = None
     topic_title: str | None = None
     relevance: float | None = None
