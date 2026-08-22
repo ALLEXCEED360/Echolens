@@ -51,11 +51,26 @@ docker compose up -d
 One-time setup:
 
 ```bash
-python -m venv .venv && .venv/Scripts/python.exe -m pip install -e "backend[dev]" faster-whisper nvidia-cublas-cu12 nvidia-cudnn-cu12
+python -m venv .venv && .venv/Scripts/python.exe -m pip install -e "backend[all,dev]"
 ```
 
-The two `nvidia-*` wheels supply cuBLAS and cuDNN. Without them the model loads and
-then the first inference fails — see [docs/05-environment.md](docs/05-environment.md).
+`all` is speech + embeddings + OCR + LLM. Install a subset if you want less: the
+pipeline degrades stage by stage, and a missing one now says which extra
+provides it rather than raising a bare `ModuleNotFoundError`.
+
+| extra | what stops working without it |
+| --- | --- |
+| `speech` | transcription (also supplies the cuBLAS and cuDNN wheels — without them the model loads and the *first inference* fails; see [docs/05-environment.md](docs/05-environment.md)) |
+| `embeddings` | embedding and reranking, so semantic search |
+| `ocr` | reading on-screen text |
+| `llm` | answering questions |
+
+**For GPU embedding**, install CUDA torch *before* the line above — plain `pip`
+resolves the CPU build, which works but is roughly an order of magnitude slower:
+
+```bash
+.venv/Scripts/python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu124
+```
 
 ```bash
 cp .env.example .env && .venv/Scripts/alembic.exe -c backend/alembic.ini upgrade head

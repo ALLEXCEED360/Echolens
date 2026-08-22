@@ -16,6 +16,7 @@ from pathlib import Path
 from threading import Lock
 
 # Must precede any faster_whisper import: it puts the CUDA DLLs on PATH.
+from app.extras import missing
 from app.gpu import resolve_device
 
 logger = logging.getLogger(__name__)
@@ -70,7 +71,10 @@ def _get_model(name: str, device_preference: str):
         if _model_key == key:
             return _model, device, compute_type
 
-        from faster_whisper import WhisperModel
+        try:
+            from faster_whisper import WhisperModel
+        except ModuleNotFoundError as exc:
+            raise missing("faster-whisper", extra="speech") from exc
 
         logger.info("Loading Whisper %s on %s (%s)", name, device, compute_type)
         _model = WhisperModel(name, device=device, compute_type=compute_type)

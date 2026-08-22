@@ -2,7 +2,7 @@
 
 import { CopyCitation } from "@/components/CopyCitation";
 import { Icon } from "@/components/ui/Icon";
-import { Badge, Button, EmptyState, ErrorNote, Input, SegmentedControl, Skeleton } from "@/components/ui";
+import { Button, EmptyState, ErrorNote, Input, SegmentedControl, Skeleton } from "@/components/ui";
 
 import Link from "next/link";
 import { useCallback, useRef, useState } from "react";

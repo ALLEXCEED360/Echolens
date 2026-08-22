@@ -44,6 +44,10 @@ export function EditableTitle({
   // Guards against blur firing after Escape has already reverted.
   const committed = useRef(false);
 
+  // Re-sync the draft when the title changes underneath us - after a
+  // successful rename, or when the parent reloads the video. The
+  // alternative the rule wants is a `key` on this component, which would
+  // remount the input and drop focus mid-edit.
   useEffect(() => {
     setDraft(value);
   }, [value]);

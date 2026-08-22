@@ -27,6 +27,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
 
+from app.extras import missing
+
 logger = logging.getLogger(__name__)
 
 # Below this the string is more likely wrong than right.
@@ -99,7 +101,10 @@ def _get_engine():
     global _engine
     with _engine_lock:
         if _engine is None:
-            from rapidocr_onnxruntime import RapidOCR
+            try:
+                from rapidocr_onnxruntime import RapidOCR
+            except ModuleNotFoundError as exc:
+                raise missing("rapidocr-onnxruntime", extra="ocr") from exc
 
             logger.info("Loading RapidOCR (CPU)")
             _engine = RapidOCR()

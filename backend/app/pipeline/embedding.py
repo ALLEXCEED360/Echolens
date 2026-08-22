@@ -17,6 +17,8 @@ import logging
 from collections.abc import Callable
 from threading import Lock
 
+from app.extras import missing
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "BAAI/bge-large-en-v1.5"
@@ -52,7 +54,10 @@ def _get_model(name: str, device_preference: str):
         if _model_key == key:
             return _model, device
 
-        from sentence_transformers import SentenceTransformer
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ModuleNotFoundError as exc:
+            raise missing("sentence-transformers", extra="embeddings") from exc
 
         logger.info("Loading embedding model %s on %s", name, device)
         _model = SentenceTransformer(name, device=device)

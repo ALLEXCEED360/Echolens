@@ -4,10 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import {
-  Badge,
   Button,
   ConfirmDialog,
-  Dot,
   EmptyState,
   ErrorNote,
   Input,
@@ -52,6 +50,8 @@ export default function CollectionsPage() {
     }
   }, []);
 
+  // Load on mount. `load` sets state synchronously before awaiting, which
+  // is what the rule sees; fetching in an effect is the point of the effect.
   useEffect(() => {
     void load();
   }, [load]);

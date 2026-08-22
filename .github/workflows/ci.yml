@@ -60,6 +60,24 @@ jobs:
           ECHOLENS_TEST_ADMIN_URL: postgresql+asyncpg://echolens:echolens@localhost:5432/postgres
         run: pytest -q
 
+      # The suite reads imports out of the source rather than out of the
+      # environment (tests/unit/test_dependencies.py), which is what catches an
+      # undeclared package. This step checks the other half: that the extras
+      # naming those packages are real and resolvable on PyPI. A typo in an
+      # extra would otherwise only surface for whoever next ran the install
+      # command an error message told them to run.
+      #
+      # `--dry-run` resolves the full graph without downloading torch, so this
+      # costs seconds rather than the several minutes a real install would.
+      - name: Check optional dependencies resolve
+        working-directory: backend
+        run: |
+          for extra in speech embeddings ocr llm all; do
+            echo "::group::[$extra]"
+            pip install --dry-run --quiet -e ".[$extra]" || exit 1
+            echo "::endgroup::"
+          done
+
       # Catches a model edited without a matching migration, which otherwise
       # only surfaces as a confusing runtime error on someone else's machine.
       - name: Check for migration drift
@@ -89,6 +107,17 @@ jobs:
       - name: Typecheck
         working-directory: frontend
         run: npx tsc --noEmit
+
+      # `--max-warnings` is deliberately not 0: one informational warning comes
+      # from the React Compiler plugin about TanStack Virtual, and is about the
+      # library rather than this code.
+      - name: Lint
+        working-directory: frontend
+        run: npx eslint
+
+      - name: Test
+        working-directory: frontend
+        run: npm test
 
       # `next build` catches things `next dev` does not — a missing Suspense
       # boundary around useSearchParams took a page down in exactly this way.

@@ -24,6 +24,8 @@ import asyncio
 import logging
 from threading import Lock
 
+from app.extras import missing
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
@@ -77,7 +79,10 @@ def _get_model(name: str, device_preference: str):
         if _model_key == key:
             return _model
 
-        from sentence_transformers import CrossEncoder
+        try:
+            from sentence_transformers import CrossEncoder
+        except ModuleNotFoundError as exc:
+            raise missing("sentence-transformers", extra="embeddings") from exc
 
         logger.info("Loading reranker %s on %s", name, device)
         _model = CrossEncoder(name, device=device, max_length=512)

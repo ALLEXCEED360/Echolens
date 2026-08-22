@@ -16,6 +16,8 @@ import re
 from dataclasses import dataclass
 from typing import Protocol
 
+from app.extras import missing
+
 logger = logging.getLogger(__name__)
 
 
@@ -128,7 +130,10 @@ class GeminiProvider:
 
     def _get_client(self):
         if self._client is None:
-            from google import genai
+            try:
+                from google import genai
+            except ModuleNotFoundError as exc:
+                raise missing("google-genai", extra="llm") from exc
 
             self._client = genai.Client(api_key=self._api_key)
         return self._client

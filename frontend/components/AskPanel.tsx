@@ -296,7 +296,7 @@ function AnswerText({
   if (hidden > 0) {
     parts.push(
       <span
-        key={`m${key++}`}
+        key={`m${key}`}
         title="More sources for this claim — all of them are listed under Evidence"
         className="mx-0.5 text-2xs text-ink-500"
       >

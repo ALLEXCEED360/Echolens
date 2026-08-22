@@ -1,18 +1,41 @@
 # 05 — Environment
 
-Detected on this machine, 2026-08-16.
+Detected on this machine, **2026-08-21**. The first survey (2026-08-16) is kept
+below it, because half this document explains decisions that only make sense
+against what was missing then.
 
 | Component | Status |
 | --- | --- |
-| GPU | RTX 4070 Laptop, **8 GB** VRAM, driver 610.88 ✅ |
-| Python | 3.13.7 ✅ |
-| Node | 22.18.0 ✅ |
-| git | 2.50.1 ✅ |
-| Docker | ❌ not installed |
-| WSL2 | ❌ not installed |
-| ffmpeg / ffprobe | ❌ not on PATH |
-| winget / choco | ❌ neither available |
-| PostgreSQL | ❌ not installed |
+| GPU | RTX 4070 Laptop, **8 GB** VRAM, driver 610.88 |
+| Python | 3.13.7 |
+| Node | 22.18.0 |
+| git | 2.50.1 |
+| Docker | 29.7.2 |
+| WSL2 | Ubuntu, version 2 |
+| Postgres | `pgvector/pgvector:pg17` in Docker |
+| Redis | `redis:7-alpine` in Docker (provisioned, not yet used) |
+| MinIO | `minio/minio:latest` in Docker |
+| ffmpeg / ffprobe | not on PATH — and no longer needed, see below |
+
+### The original survey, 2026-08-16
+
+Everything from `Docker` down was missing. This is why the architecture has a
+SQLite bridge, why storage sits behind a protocol with a local-disk
+implementation, and why probing goes through PyAV rather than shelling out to
+`ffprobe`.
+
+| Component | Status then |
+| --- | --- |
+| Docker | not installed |
+| WSL2 | not installed |
+| ffmpeg / ffprobe | not on PATH |
+| winget / choco | neither available |
+| PostgreSQL | not installed |
+
+Docker and WSL2 have since been installed and the three services are running,
+so the Phase 3 requirement below is satisfied. `ffprobe` never was, and no
+longer needs to be: PyAV ships its own FFmpeg libraries, including libx264 and
+h264_nvenc.
 
 ## What this means
 
@@ -38,19 +61,18 @@ it brings WSL2 with it.
 Download: <https://www.docker.com/products/docker-desktop/> · ~1 GB, requires a
 reboot. Then `docker compose up -d` and switch two lines in `.env`.
 
-### ffmpeg is needed from Phase 2
+### ffmpeg turned out never to be needed
 
-PyAV covers probing but audio extraction is cleaner through the CLI. No package
-manager here, so it is a manual install:
+This section used to carry manual install instructions for the ffmpeg CLI, on
+the assumption that audio extraction wanted it. It does not, and never did:
+`app/pipeline/audio.py` extracts through **PyAV**, the same library that does
+probing. There is no `subprocess` call anywhere in the backend.
 
-1. Download a release build from <https://www.gyan.dev/ffmpeg/builds/> (`essentials`
-   is enough).
-2. Extract to `C:\ffmpeg`.
-3. Add `C:\ffmpeg\bin` to PATH.
-4. Verify: `ffprobe -version`.
+PyAV binds libav directly and ships its own FFmpeg libraries in the wheel,
+which is also where H.264 encoding comes from. Measured: audio extraction from
+a 6-hour source takes **23 s**, about 940x realtime.
 
-Installing Docker Desktop first is also fine — you can run ffmpeg in a container —
-but a local binary is simpler for iterating.
+So `ffprobe` being absent from PATH is not a gap to close. Nothing looks for it.
 
 ## GPU budget
 
@@ -78,15 +100,71 @@ available without installing ffmpeg at all.
 `pyannote.audio` (diarization) still needs checking before that stage is built; it
 pulls in torch, which is a much heavier dependency than anything here so far.
 
+## Optional dependencies
+
+The heavy models are extras, not core requirements: a fresh clone boots and
+serves the API without downloading torch. The full install is
+
+```bash
+pip install -e "backend[all,dev]"
+```
+
+| extra | packages | what stops working without it |
+| --- | --- | --- |
+| `speech` | faster-whisper, nvidia-cublas-cu12, nvidia-cudnn-cu12 | transcription |
+| `embeddings` | sentence-transformers | embedding and reranking, so semantic search |
+| `ocr` | rapidocr-onnxruntime | reading on-screen text |
+| `llm` | google-genai | answering questions |
+| `diarization` | pyannote.audio | speaker labels — the stage is scaffolded and disabled, so this is excluded from `all` |
+
+### The bug this arrangement exists to prevent
+
+Three of those packages were imported lazily inside functions and declared
+nowhere. They were present on the machine that had pip-installed them by hand,
+so nothing failed there — but a fresh clone installed cleanly and then died at
+the first embed. CI missed it because the suite stubs those models out. The same
+thing had already happened twice, with `pgvector` and `pillow`.
+
+Two guards now make that hard to repeat:
+
+- **`tests/unit/test_dependencies.py`** AST-scans `app/` for every import at any
+  nesting depth and asserts each maps to a distribution named in
+  `pyproject.toml`. It reads the *source*, not the environment — the assumption
+  that the environment is representative is exactly what let this through.
+- **CI resolves each extra** with `pip install --dry-run`, so a typo in an extra
+  name fails the build rather than failing the person who runs the install
+  command an error message told them to run.
+
+A package that arrives transitively and is imported directly must be listed in
+`ALLOWED_TRANSITIVE` with the reason — `torch` and `ctranslate2` are there, both
+guarded by `try/except ImportError` with a working fallback.
+
+### When an extra is missing
+
+`app/extras.py` turns the failed import into the fix:
+
+```
+'sentence-transformers' is not installed, so embedding and reranking cannot run.
+Install it with:  pip install -e ".[embeddings]"
+```
+
+rather than `ModuleNotFoundError: No module named 'sentence_transformers'` raised
+on a worker thread. The package name is not the install command, and the two
+differ in ways that are easy to guess wrong: `rapidocr-onnxruntime` imports as
+`rapidocr_onnxruntime`, and `google-genai` as `google.genai`.
+
+---
+
 ## CUDA on Windows — the DLL trap
 
 Solved in `backend/app/gpu.py`, and worth understanding because the failure mode is
 deeply misleading.
 
-faster-whisper on GPU needs cuBLAS and cuDNN. Installed via pip:
+faster-whisper on GPU needs cuBLAS and cuDNN. The `speech` extra declares both
+behind a Windows environment marker, so they arrive with:
 
 ```bash
-.venv/Scripts/python.exe -m pip install nvidia-cublas-cu12 nvidia-cudnn-cu12
+.venv/Scripts/python.exe -m pip install -e "backend[speech]"
 ```
 
 That puts the DLLs inside `site-packages/nvidia/*/bin`, where nothing looks for them.

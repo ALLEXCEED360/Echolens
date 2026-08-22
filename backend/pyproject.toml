@@ -43,9 +43,39 @@ speech = [
     "nvidia-cudnn-cu12; platform_system == 'Windows'",
 ]
 
+# Embeddings and reranking. One package covers both: `SentenceTransformer` in
+# app/pipeline/embedding.py, `CrossEncoder` in app/pipeline/rerank.py.
+#
+# Pulls torch. Plain `pip install` gets the CPU build, which works but embeds an
+# order of magnitude slower; for CUDA, install torch from the NVIDIA index
+# first. See docs/05-environment.md.
+embeddings = [
+    "sentence-transformers>=5.0",
+]
+
+# On-screen text. ONNX on CPU by design, so the GPU stays free for Whisper.
+ocr = [
+    "rapidocr-onnxruntime>=1.2",
+]
+
+# Answer generation. Only the provider talks to this; citation integrity lives
+# in app/answer.py and is provider-agnostic.
+llm = [
+    "google-genai>=2.0",
+]
+
 # Phase 2.5. Pulls in torch; verify 3.13 wheels before committing to this.
 diarization = [
     "pyannote.audio>=3.3",
+]
+
+# Everything the pipeline can use. `pip install -e ".[all,dev]"` is the
+# full-fat development install.
+#
+# Diarization is deliberately excluded: its stage is scaffolded but disabled,
+# and pyannote is a large install to carry for something that does not run.
+all = [
+    "echolens[speech,embeddings,ocr,llm]",
 ]
 
 [tool.hatch.build.targets.wheel]
